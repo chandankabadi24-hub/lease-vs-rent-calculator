@@ -2,45 +2,67 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent – Institutional Terminal</title>
+<title>Lease vs Rent – Bloomberg Terminal Mode</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
+/* ===== THEME ===== */
+
 :root{
 --bg:#0b1622;
---card:rgba(18,30,44,.85);
---accent:#00c3ff;
+--card:#102132;
 --text:#e8f1fb;
+--accent:#00c3ff;
 --muted:#8ea2b5;
+}
+
+body.light{
+--bg:#f4f7fb;
+--card:#ffffff;
+--text:#0b1622;
+--accent:#1f4e79;
+--muted:#6c7a89;
 }
 
 body{
 margin:0;
-padding:30px;
+padding:28px;
 font-family:Inter,Arial;
 background:var(--bg);
 color:var(--text);
+transition:.3s;
 }
 
-.container{max-width:1200px;margin:auto;}
+.container{max-width:1250px;margin:auto;}
 
 .card{
 background:var(--card);
 padding:22px;
 border-radius:18px;
 margin-bottom:22px;
-box-shadow:0 20px 50px rgba(0,0,0,.4);
+box-shadow:0 15px 40px rgba(0,0,0,.25);
 }
 
 .grid{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:14px;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:18px;
+align-items:start;
 }
 
-input{
+.field{display:flex;flex-direction:column;gap:6px;}
+
+label{font-size:12px;color:var(--muted);}
+
+.micro{
+font-size:11px;
+color:var(--accent);
+min-height:14px;
+}
+
+input[type=text]{
 padding:10px;
 border-radius:10px;
 border:none;
@@ -48,67 +70,59 @@ background:#0f2133;
 color:#fff;
 }
 
-button{
-background:var(--accent);
+body.light input[type=text]{
+background:#eef3f8;
 color:#000;
-border:none;
-padding:12px;
-border-radius:12px;
-font-weight:700;
-margin-top:12px;
-cursor:pointer;
 }
 
-.metricLabel{font-size:12px;color:var(--muted);}
-.metricValue{font-size:26px;font-weight:700;}
-
-.kpiRow{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:16px;
-}
-
-.kpiBox{
-padding:16px;
-border-radius:14px;
-background:#102132;
-}
+input[type=range]{width:100%;}
 
 .chartCard{
-background:#102132;
+background:var(--card);
 padding:20px;
 border-radius:18px;
 margin-top:20px;
 }
 
+.metricValue{font-size:26px;font-weight:700;}
+
+.toggle{
+position:fixed;
+top:15px;
+right:15px;
+background:var(--accent);
+color:#fff;
+padding:8px 14px;
+border-radius:20px;
+cursor:pointer;
+font-size:13px;
+}
+
 .gauge{
-width:160px;
-height:160px;
-border-radius:50%;
+width:160px;height:160px;border-radius:50%;
 background:conic-gradient(#2ecc71 0deg,#f1c40f 180deg,#ff4d4d 360deg);
-display:flex;
-align-items:center;
-justify-content:center;
-margin:auto;
+display:flex;align-items:center;justify-content:center;margin:auto;
 }
-
 .gaugeInner{
-width:120px;
-height:120px;
-border-radius:50%;
-background:#0b1622;
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:28px;
-font-weight:700;
+width:120px;height:120px;border-radius:50%;
+background:var(--bg);
+display:flex;align-items:center;justify-content:center;
+font-size:28px;font-weight:700;
 }
 
-.verdict{
-font-size:22px;
-font-weight:700;
-text-align:center;
+.verdict{text-align:center;font-size:20px;font-weight:700;margin-top:10px;}
+
+.savingsBox{
 margin-top:10px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:12px;
+}
+
+.sBlock{
+background:rgba(255,255,255,.04);
+padding:12px;
+border-radius:10px;
 }
 
 </style>
@@ -116,42 +130,80 @@ margin-top:10px;
 
 <body>
 
+<div class="toggle" onclick="toggleTheme()"> / </div>
+
 <div class="container">
 
 <div class="card">
+
 <div class="grid">
-<input id="leaseAmount" class="currency" placeholder="Lease Amount">
-<input id="loanAmount" class="currency" placeholder="Loan Amount">
-<input id="loanRate" class="percent" placeholder="Loan Interest %">
+
+<div class="field">
+<label>Lease Amount</label>
+<input id="leaseAmount" class="currency">
+<input type="range" id="leaseAmountRange" min="100000" max="5000000" step="50000">
+</div>
+
+<div class="field">
+<label>Loan Amount</label>
+<input id="loanAmount" class="currency">
+<input type="range" id="loanAmountRange" min="0" max="3000000" step="50000">
+</div>
+
+<div class="field">
+<label>Loan Interest %</label>
+<input id="loanRate" class="percent">
+<div id="emiLabel" class="micro"></div>
+<input type="range" id="loanRateRange" min="1" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Opportunity Cost %</label>
+<input id="oppRate" class="percent">
+<div id="oppLabel" class="micro"></div>
+<input type="range" id="oppRateRange" min="1" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Risk Premium %</label>
+<input id="riskPremium" class="percent">
+<div id="riskLabel" class="micro"></div>
+<input type="range" id="riskPremiumRange" min="0" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Market Rent</label>
+<input id="marketRent" class="currency">
+<input type="range" id="marketRentRange" min="5000" max="100000" step="1000">
+</div>
+
+<div class="field">
+<label>Maintenance</label>
+<input id="maintenance" class="currency">
+<input type="range" id="maintenanceRange" min="0" max="20000" step="500">
+</div>
+
 <input id="loanTenure" placeholder="Loan Tenure Months">
 <input id="leaseTenure" placeholder="Lease Tenure Months">
 <input id="withholding" class="percent" placeholder="Withholding %">
 <input id="refundDelay" placeholder="Refund Delay Months">
-<input id="maintenance" class="currency" placeholder="Monthly Maintenance">
-<input id="marketRent" class="currency" placeholder="Market Rent">
-<input id="oppRate" class="percent" placeholder="Opportunity Cost %">
-<input id="riskPremium" class="percent" placeholder="Risk Premium %">
-<input id="salary" class="currency" placeholder="Take Home Salary Optional">
-</div>
+<input id="salary" class="currency" placeholder="Take Home Salary">
 
-<button onclick="calculate()">Run Analysis</button>
+</div>
 </div>
 
 <div class="card">
 
-<div class="gauge">
-<div id="dial" class="gaugeInner">0</div>
-</div>
-
+<div class="gauge"><div id="dial" class="gaugeInner">0</div></div>
 <div id="verdict" class="verdict"></div>
 
-<div class="kpiRow">
-<div class="kpiBox"><div class="metricLabel">Own Funds</div><div id="ownFundsKPI" class="metricValue"> 0</div></div>
-<div class="kpiBox"><div class="metricLabel">Lease Monthly Cost</div><div id="leaseCostKPI" class="metricValue"> 0</div></div>
-<div class="kpiBox"><div class="metricLabel">Risk Adjusted Rent</div><div id="riskRentKPI" class="metricValue"> 0</div></div>
-</div>
-
 <div id="results"></div>
+
+<div class="savingsBox">
+<div class="sBlock"><div class="micro">Monthly Savings</div><div id="mSave" class="metricValue"></div></div>
+<div class="sBlock"><div class="micro">Yearly Savings</div><div id="ySave" class="metricValue"></div></div>
+<div class="sBlock"><div class="micro">Lease Term Savings</div><div id="tSave" class="metricValue"></div></div>
+</div>
 
 </div>
 
@@ -163,68 +215,72 @@ margin-top:10px;
 
 <script>
 
-/* ===== FORMAT ENGINE (NEW – UI ONLY) ===== */
+/* ===== THEME ===== */
+function toggleTheme(){document.body.classList.toggle("light");}
 
 const $=id=>document.getElementById(id);
+
+/* ===== FORMAT ENGINE ===== */
 
 function cleanNumber(v){
 return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;
 }
-
 function num(id){return cleanNumber($(id).value);}
+function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
 
 function formatINR(n){
 return " "+Number(n).toLocaleString("en-IN",{maximumFractionDigits:0});
 }
-
 function formatPercent(n){
 return Number(n).toLocaleString("en-IN",{minimumFractionDigits:0,maximumFractionDigits:2})+"%";
 }
 
-/* Caret-safe smart formatting */
-function smartFormat(el,formatter){
-let caret=el.selectionStart;
+function attachFormatter(selector,formatter){
+document.querySelectorAll(selector).forEach(el=>{
+let timer;
+el.addEventListener("input",()=>{
+clearTimeout(timer);
+timer=setTimeout(()=>{
 let raw=cleanNumber(el.value);
-if(!raw){el.value="";return;}
-let before=el.value.length;
-el.value=formatter(raw);
-let after=el.value.length;
-el.setSelectionRange(caret+(after-before),caret+(after-before));
-}
-
-/* attach formatters */
-document.querySelectorAll(".currency").forEach(el=>{
-el.addEventListener("input",()=>smartFormat(el,formatINR));
+if(raw) el.value=formatter(raw);
+calculate();
+},300);
 });
+});
+}
+attachFormatter(".currency",formatINR);
+attachFormatter(".percent",formatPercent);
 
-document.querySelectorAll(".percent").forEach(el=>{
-el.addEventListener("input",()=>smartFormat(el,formatPercent));
+/* ===== RANGE SYNC ===== */
+
+[
+"leaseAmount","loanAmount","loanRate",
+"oppRate","riskPremium","marketRent","maintenance"
+].forEach(id=>{
+let input=$(id);
+let range=$(id+"Range");
+if(!range) return;
+
+range.addEventListener("input",()=>{
+input.value=range.value;
+calculate();
+});
+input.addEventListener("input",()=>{
+range.value=cleanNumber(input.value);
+});
 });
 
 /* ===== ORIGINAL FINANCIAL ENGINE (UNCHANGED) ===== */
 
 let comparisonChart,projectionChart,compositionChart;
 
-function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
-
 function emi(P,r,n){
 if(r===0)return P/n;
 return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
 }
-
 function futureValue(pmt,rate,n){
 if(rate===0)return pmt*n;
 return pmt*((Math.pow(1+rate,n)-1)/rate);
-}
-
-function animateValue(el,end){
-let val=0;
-let step=end/20;
-let t=setInterval(()=>{
-val+=step;
-if(val>=end){val=end;clearInterval(t);}
-el.innerText=INR(val);
-},20);
 }
 
 function calculate(){
@@ -247,7 +303,7 @@ const OPP_RATE=(num("oppRate")/100)/12;
 const RISK_PREMIUM=num("riskPremium")/100;
 const SALARY=num("salary");
 
-/* ===== YOUR LOGIC BLOCK – NOT MODIFIED ===== */
+/* ===== STRICT ORIGINAL MODEL ===== */
 
 const EMI=emi(LOAN_AMOUNT,LOAN_INTEREST_RATE,LOAN_TENURE);
 const totalInterest=EMI*LOAN_TENURE-LOAN_AMOUNT;
@@ -285,20 +341,19 @@ const termSavings=monthlySavings*LEASE_TENURE;
 let score=MARKET_RENT>0?(monthlySavings/MARKET_RENT)*100:0;
 score=Math.max(0,Math.min(100,score));
 
-const extraCash=(Math.max(monthlyExtra,0)*LEASE_TENURE)+OWN_FUNDS;
+/* ===== MICRO LABELS (UI ONLY) ===== */
 
-/* ===== UI OUTPUT ONLY ===== */
+$("emiLabel").innerText="EMI: "+INR(EMI);
+$("oppLabel").innerText="Opp Cost Impact: "+INR(ownOpp);
+$("riskLabel").innerText="Risk Rent: "+INR(riskRent);
+
+/* ===== SAVINGS PANEL ===== */
+
+$("mSave").innerText=INR(monthlySavings);
+$("ySave").innerText=INR(yearlySavings);
+$("tSave").innerText=INR(termSavings);
 
 $("dial").innerText=Math.round(score);
-
-animateValue($("ownFundsKPI"),OWN_FUNDS);
-animateValue($("leaseCostKPI"),monthlyLeaseCost);
-animateValue($("riskRentKPI"),riskRent);
-
-$("results").innerHTML=`
-<div class="metricLabel">Monthly Savings</div>
-<div class="metricValue">${INR(monthlySavings)}</div>
-`;
 
 let verdict=" Neutral";
 if(score>20) verdict=" Lease Is Winning";
@@ -321,8 +376,7 @@ for(let i=1;i<=LEASE_TENURE;i++){proj.push(step*i);}
 if(projectionChart)projectionChart.destroy();
 projectionChart=new Chart($("projectionChart"),{
 type:"line",
-data:{labels:proj.map((_,i)=>i+1),
-datasets:[{data:proj}]}
+data:{labels:proj.map((_,i)=>i+1),datasets:[{data:proj}]}
 });
 
 if(compositionChart)compositionChart.destroy();
@@ -333,6 +387,10 @@ datasets:[{data:[totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss]}]}
 });
 
 }
+
+document.querySelectorAll("input").forEach(el=>{
+el.addEventListener("input",calculate);
+});
 
 </script>
 </body>
