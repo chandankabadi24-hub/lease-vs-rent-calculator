@@ -8,6 +8,8 @@
 
 <style>
 
+/* ===== DESIGN SYSTEM ===== */
+
 body{
 font-family:Inter,Arial;
 background:#f4f7fb;
@@ -17,10 +19,26 @@ padding:24px;
 
 .container{max-width:1200px;margin:auto;}
 
+.hero{
+text-align:center;
+margin-bottom:24px;
+}
+
+.hero h1{
+font-size:30px;
+margin-bottom:8px;
+}
+
+.hero p{
+color:#6c7a89;
+max-width:720px;
+margin:auto;
+}
+
 .card{
 background:#fff;
-padding:22px;
-margin-bottom:22px;
+padding:24px;
+margin-bottom:24px;
 border-radius:14px;
 box-shadow:0 8px 18px rgba(0,0,0,.06);
 }
@@ -28,7 +46,7 @@ box-shadow:0 8px 18px rgba(0,0,0,.06);
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:12px;
+gap:14px;
 }
 
 input{
@@ -45,12 +63,23 @@ border:none;
 padding:12px;
 border-radius:10px;
 font-weight:bold;
-margin-top:10px;
+margin-top:12px;
 cursor:pointer;
 }
 
-.metricLabel{font-size:13px;color:#6c7a89;margin-top:12px;}
-.metricValue{font-size:20px;font-weight:700;margin-top:4px;}
+/* ===== METRIC SYSTEM ===== */
+
+.metricLabel{
+font-size:13px;
+color:#6c7a89;
+margin-top:14px;
+}
+
+.metricValue{
+font-size:22px;
+font-weight:700;
+margin-top:4px;
+}
 
 .verdict{
 font-size:22px;
@@ -59,7 +88,24 @@ text-align:center;
 margin-top:16px;
 }
 
-.chartWrap{margin-top:20px;}
+.chartStack{
+display:flex;
+flex-direction:column;
+gap:24px;
+}
+
+.chartCard{
+background:#fff;
+padding:24px;
+border-radius:14px;
+box-shadow:0 8px 18px rgba(0,0,0,.06);
+}
+
+.chartTitle{
+font-size:16px;
+font-weight:600;
+margin-bottom:12px;
+}
 
 </style>
 </head>
@@ -68,43 +114,59 @@ margin-top:16px;
 
 <div class="container">
 
+<div class="hero">
+<h1>Lease vs Rent Financial Decision Engine</h1>
+<p>
+Compare a loan-funded lease against market rent using opportunity cost,
+risk-adjusted rent and capital efficiency analytics.
+</p>
+</div>
+
 <div class="card">
-<h3>Inputs</h3>
+<h3>Financial Inputs</h3>
 
 <div class="grid">
-<input id="leaseAmount" placeholder="Lease Amount">
-<input id="loanAmount" placeholder="Loan Amount">
-<input id="ownFunds" placeholder="Own Funds">
-<input id="loanRate" placeholder="Loan Interest %">
+<input id="leaseAmount" class="currency" placeholder="Lease Amount">
+<input id="loanAmount" class="currency" placeholder="Loan Amount">
+<input id="ownFunds" class="currency" placeholder="Own Funds">
+<input id="loanRate" class="percent" placeholder="Loan Interest %">
 <input id="loanTenure" placeholder="Loan Tenure Months">
 <input id="leaseTenure" placeholder="Lease Tenure Months">
-<input id="withholding" placeholder="Withholding %">
+<input id="withholding" class="percent" placeholder="Withholding %">
 <input id="refundDelay" placeholder="Refund Delay Months">
-<input id="maintenance" placeholder="Monthly Maintenance">
-<input id="marketRent" placeholder="Market Rent">
-<input id="oppRate" placeholder="Opportunity Cost %">
-<input id="riskPremium" placeholder="Risk Premium %">
-<input id="salary" placeholder="Take Home Salary Optional">
+<input id="maintenance" class="currency" placeholder="Monthly Maintenance">
+<input id="marketRent" class="currency" placeholder="Market Rent">
+<input id="oppRate" class="percent" placeholder="Opportunity Cost %">
+<input id="riskPremium" class="percent" placeholder="Risk Premium %">
+<input id="salary" class="currency" placeholder="Take Home Salary Optional">
 </div>
 
 <button onclick="calculate()">Run Analysis</button>
 </div>
 
 <div class="card">
+<h3>Key Financial Metrics</h3>
 <div id="results"></div>
 <div id="verdict" class="verdict"></div>
 </div>
 
-<div class="card">
+<div class="chartStack">
+
+<div class="chartCard">
+<div class="chartTitle">Monthly Cost Comparison</div>
 <canvas id="comparisonChart"></canvas>
 </div>
 
-<div class="card">
+<div class="chartCard">
+<div class="chartTitle">Cumulative Savings Projection</div>
 <canvas id="projectionChart"></canvas>
 </div>
 
-<div class="card">
+<div class="chartCard">
+<div class="chartTitle">Economic Cost Composition</div>
 <canvas id="compositionChart"></canvas>
+</div>
+
 </div>
 
 </div>
@@ -115,8 +177,43 @@ const $=id=>document.getElementById(id);
 
 let comparisonChart,projectionChart,compositionChart;
 
-function num(id){return parseFloat($(id).value)||0;}
-function INR(n){return "₹ "+Math.round(n||0).toLocaleString("en-IN");}
+/* ===== REAL-TIME FINTECH FORMAT ENGINE ===== */
+
+function cleanNumber(v){
+return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;
+}
+
+function num(id){
+return cleanNumber($(id).value);
+}
+
+function formatINR(n){
+return " "+Math.round(n||0).toLocaleString("en-IN");
+}
+
+function formatPercent(n){
+return (n||0).toFixed(2)+"%";
+}
+
+/* REAL TIME CURRENCY */
+document.querySelectorAll(".currency").forEach(el=>{
+el.addEventListener("input",()=>{
+let v=cleanNumber(el.value);
+if(!v){el.value="";return;}
+el.value=formatINR(v);
+});
+});
+
+/* REAL TIME PERCENT */
+document.querySelectorAll(".percent").forEach(el=>{
+el.addEventListener("input",()=>{
+let v=cleanNumber(el.value);
+if(!v){el.value="";return;}
+el.value=formatPercent(v);
+});
+});
+
+function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
 
 function emi(P,r,n){
 if(r===0)return P/n;
@@ -129,8 +226,6 @@ return pmt*((Math.pow(1+rate,n)-1)/rate);
 }
 
 function calculate(){
-
-/* ===== INPUTS ===== */
 
 const LEASE_AMOUNT=num("leaseAmount");
 const LOAN_AMOUNT=num("loanAmount");
@@ -190,7 +285,7 @@ score=Math.max(0,Math.min(100,score));
 
 const extraCash=(Math.max(monthlyExtra,0)*LEASE_TENURE)+OWN_FUNDS;
 
-/* ===== OUTPUT ===== */
+/* ===== OUTPUT (UPDATED UI ONLY) ===== */
 
 $("results").innerHTML=`
 
@@ -206,6 +301,12 @@ $("results").innerHTML=`
 <div class="metricLabel">Monthly Savings</div>
 <div class="metricValue">${INR(monthlySavings)}</div>
 
+<div class="metricLabel">Yearly Savings</div>
+<div>${INR(yearlySavings)}</div>
+
+<div class="metricLabel">Lease Term Savings</div>
+<div>${INR(termSavings)}</div>
+
 <div class="metricLabel">Total Extra Cash</div>
 <div>${INR(extraCash)}</div>
 
@@ -213,13 +314,13 @@ $("results").innerHTML=`
 <div>${score.toFixed(0)} / 100</div>
 `;
 
-let verdict="🟡 Neutral";
-if(score>20) verdict="🟢 Lease Is Winning";
-if(score<5) verdict="🔴 Rent Is Safer";
+let verdict=" Neutral";
+if(score>20) verdict=" Lease Is Winning";
+if(score<5) verdict=" Rent Is Safer";
 
 $("verdict").innerText=verdict;
 
-/* ================= BI CHARTS ================= */
+/* ===== CHARTS UNCHANGED ===== */
 
 if(comparisonChart)comparisonChart.destroy();
 
@@ -232,11 +333,8 @@ label:"Monthly Comparison",
 data:[MARKET_RENT,riskRent,monthlyLeaseCost],
 backgroundColor:["#3498db","#e74c3c","#2ecc71"]
 }]
-},
-options:{animation:{duration:900}}
+}
 });
-
-/* Projection Line */
 
 let proj=[];
 let step=termSavings/LEASE_TENURE;
@@ -251,8 +349,6 @@ labels:proj.map((_,i)=>i+1),
 datasets:[{label:"Cumulative Savings Projection",data:proj}]
 }
 });
-
-/* Cost Composition */
 
 if(compositionChart)compositionChart.destroy();
 
