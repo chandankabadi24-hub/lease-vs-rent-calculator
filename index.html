@@ -2,86 +2,75 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent AI Fintech Dashboard</title>
+<title>Lease vs Rent Fintech Decision Engine</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
 
-/* ---------- DARK FINTECH THEME ---------- */
+/* ---------- THEME VARIABLES ---------- */
+
+:root{
+--bg:#f4f7fb;
+--card:#ffffff;
+--text:#0b1622;
+--accent:#1f4e79;
+--muted:#6c7a89;
+}
+
+body.dark{
+--bg:#0b1622;
+--card:rgba(255,255,255,0.05);
+--text:#e6eef7;
+--accent:#00d4ff;
+--muted:#9fb3c8;
+}
 
 body{
 margin:0;
 font-family:Inter,Arial;
-background:linear-gradient(135deg,#0b1622,#0f2336,#081018);
-color:#e6eef7;
-padding:15px;
+background:var(--bg);
+color:var(--text);
+padding:20px;
+transition:.4s;
 }
 
-.container{max-width:1150px;margin:auto;}
+.container{max-width:1100px;margin:auto;}
 
 h1{
 text-align:center;
-font-weight:700;
-background:linear-gradient(90deg,#00d4ff,#2ecc71,#00d4ff);
--webkit-background-clip:text;
-color:transparent;
-animation:glow 6s linear infinite;
+margin-bottom:20px;
 }
-
-@keyframes glow{
-0%{filter:hue-rotate(0deg)}
-100%{filter:hue-rotate(360deg)}
-}
-
-/* ---------- GLASS CARDS ---------- */
 
 .card{
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(14px);
-border:1px solid rgba(255,255,255,0.08);
-border-radius:16px;
-padding:20px;
-margin-bottom:20px;
-box-shadow:0 10px 30px rgba(0,0,0,.35);
-transition:.35s;
+background:var(--card);
+border-radius:14px;
+padding:22px;
+margin-bottom:22px;
+box-shadow:0 8px 20px rgba(0,0,0,.06);
+backdrop-filter:blur(10px);
 }
-
-.card:hover{
-transform:translateY(-4px);
-box-shadow:0 14px 40px rgba(0,0,0,.6);
-}
-
-/* ---------- GRID ---------- */
 
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:10px;
+gap:12px;
 }
 
 input{
-background:#07111c;
-border:1px solid #1e3a52;
-color:#e6eef7;
 padding:12px;
 border-radius:10px;
-outline:none;
-transition:.25s;
+border:1px solid #ccc;
+width:100%;
+background:transparent;
+color:var(--text);
 }
-
-input:focus{
-border-color:#00d4ff;
-box-shadow:0 0 8px rgba(0,212,255,.4);
-}
-
-/* ---------- BUTTONS ---------- */
 
 button{
-background:linear-gradient(90deg,#1f4e79,#00d4ff);
-border:none;
+background:var(--accent);
 color:white;
+border:none;
 padding:12px;
 border-radius:10px;
 font-weight:bold;
@@ -89,50 +78,57 @@ cursor:pointer;
 transition:.3s;
 }
 
-button:hover{
-transform:scale(1.05);
-box-shadow:0 0 12px rgba(0,212,255,.6);
-}
+button:hover{transform:scale(1.03)}
 
-.scenarioBtns{display:flex;gap:8px;margin-top:10px}
-.scenarioBtns button{flex:1}
-
-/* ---------- VERDICT ---------- */
+.rowSpace{margin-top:14px;}
 
 .verdict{
-font-size:26px;
-font-weight:bold;
-text-align:center;
+font-size:24px;
+font-weight:700;
 margin-top:10px;
+text-align:center;
 }
 
-/* ---------- GAUGE ---------- */
+.metric{
+margin-top:8px;
+font-size:16px;
+color:var(--muted);
+}
 
-.gauge{
-height:18px;
-background:#0b1a29;
-border-radius:10px;
-overflow:hidden;
+.bigNumber{
+font-size:22px;
+font-weight:700;
 margin-top:12px;
 }
 
-.gauge-fill{
+.toggleWrap{
+display:flex;
+justify-content:flex-end;
+margin-bottom:10px;
+}
+
+.switch{
+cursor:pointer;
+background:var(--accent);
+color:white;
+padding:8px 14px;
+border-radius:20px;
+font-size:14px;
+}
+
+.confidenceBar{
+height:16px;
+background:#ddd;
+border-radius:10px;
+margin-top:10px;
+overflow:hidden;
+}
+
+.confidenceFill{
 height:100%;
 width:0%;
 background:linear-gradient(90deg,#ff4d4d,#f1c40f,#2ecc71);
 transition:width 1s ease;
-}
-
-/* ---------- TEXT COLORS ---------- */
-
-.good{color:#2ecc71}
-.warning{color:#f1c40f}
-.bad{color:#ff4d4d}
-
-.bigNumber{
-font-size:22px;
-font-weight:600;
-margin-top:6px;
 }
 
 </style>
@@ -142,7 +138,11 @@ margin-top:6px;
 
 <div class="container">
 
-<h1>Lease vs Rent AI Fintech Dashboard</h1>
+<div class="toggleWrap">
+<div class="switch" onclick="toggleTheme()"> /  Toggle Theme</div>
+</div>
+
+<h1>Lease vs Rent Fintech Decision Engine</h1>
 
 <div class="card">
 <h3>Inputs</h3>
@@ -153,48 +153,58 @@ margin-top:6px;
 <input id="loanRate" class="percent" placeholder="Loan Interest %">
 <input id="loanTenure" placeholder="Loan Tenure Months">
 <input id="leaseTenure" placeholder="Lease Tenure Months">
-<input id="withholding" class="percent" placeholder="Lease Withholding %">
-<input id="refundDelay" placeholder="Refund Delay Months">
 <input id="maintenance" class="currency" placeholder="Monthly Maintenance">
 <input id="marketRent" class="currency" placeholder="Market Rent">
 <input id="oppRate" class="percent" placeholder="Opportunity Cost %">
 <input id="riskPremium" class="percent" placeholder="Risk Premium %">
-<input id="salary" class="currency" placeholder="Take Home Salary (Optional)">
 </div>
 
-<div class="scenarioBtns">
-<button onclick="runScenario('best')">🟢 Best</button>
-<button onclick="runScenario('realistic')">🟡 Realistic</button>
-<button onclick="runScenario('worst')">🔴 Worst</button>
+<div class="rowSpace">
+<button onclick="runScenario('best')">Best</button>
+<button onclick="runScenario('realistic')">Realistic</button>
+<button onclick="runScenario('worst')">Worst</button>
 </div>
 
+<div class="rowSpace">
 <button onclick="downloadPDF()">Download Professional Report</button>
+</div>
 
 </div>
 
 <div class="card">
 <div id="results"></div>
 <div id="verdict" class="verdict"></div>
-<div class="gauge"><div id="gaugeFill" class="gauge-fill"></div></div>
+
+<div class="metric">Confidence Score</div>
+<div class="confidenceBar">
+<div id="confidenceFill" class="confidenceFill"></div>
+</div>
+
 </div>
 
 <div class="card">
-<canvas id="chart"></canvas>
+<canvas id="projectionChart"></canvas>
 </div>
 
 </div>
 
 <script>
 
-let chartInstance;
+let projectionChart;
 let lastResults={};
 
 const $=id=>document.getElementById(id);
 
+/* ---------- THEME TOGGLE ---------- */
+
+function toggleTheme(){
+document.body.classList.toggle("dark");
+}
+
 /* ---------- FORMAT ENGINE ---------- */
 
-function clean(v){return parseFloat((v||"").replace(/[₹,%\s,]/g,""))||0;}
-function INR(n){return "₹ "+Math.round(n||0).toLocaleString("en-IN");}
+function clean(v){return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;}
+function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
 function PCT(n){return (n||0).toFixed(2)+"%";}
 
 document.querySelectorAll(".currency").forEach(i=>{
@@ -239,7 +249,6 @@ const riskPremium=(clean($("riskPremium").value)/100)*riskAdj;
 const EMI=emi(loanAmount,loanRate,loanTenure);
 
 const totalEconomic=EMI*loanTenure-loanAmount + ownFunds*oppRate*leaseTenure;
-
 const riskRent=(totalEconomic/leaseTenure)*(1+riskPremium);
 
 const monthlySavings=marketRent-riskRent;
@@ -249,35 +258,64 @@ const termSavings=monthlySavings*leaseTenure;
 let score=(monthlySavings/marketRent)*100;
 score=Math.max(0,Math.min(100,score));
 
-let verdictText="🟡 NEUTRAL";
-if(score>20) verdictText="🟢 LEASE IS WINNING";
-if(score<5) verdictText="🔴 RENT IS SAFER";
-
-$("verdict").innerText=verdictText+" ("+label.toUpperCase()+")";
-$("gaugeFill").style.width=score+"%";
+let verdict=" Neutral Zone";
+if(score>20) verdict=" Lease Is Winning";
+if(score<5) verdict=" Rent Is Safer";
 
 $("results").innerHTML=`
-<div>Own Funds Used: ${INR(ownFunds)}</div>
-<div>EMI: ${INR(EMI)}</div>
-<div>Risk Adjusted Rent: ${INR(riskRent)}</div>
-<div class="bigNumber">Monthly Savings: ${INR(monthlySavings)}</div>
-<div>Yearly Savings: ${INR(yearlySavings)}</div>
-<div>Total Term Savings: ${INR(termSavings)}</div>
+
+<div class="metric">Own Funds Used</div>
+<div class="bigNumber">${INR(ownFunds)}</div>
+
+<div class="metric">EMI</div>
+<div>${INR(EMI)}</div>
+
+<div class="metric">Risk Adjusted Rent</div>
+<div>${INR(riskRent)}</div>
+
+<div class="metric">Monthly Savings</div>
+<div class="bigNumber">${INR(monthlySavings)}</div>
+
+<div class="metric">Yearly Savings</div>
+<div>${INR(yearlySavings)}</div>
+
+<div class="metric">Lease Term Savings</div>
+<div>${INR(termSavings)}</div>
 `;
 
-lastResults={EMI,riskRent,monthlySavings,yearlySavings,termSavings,label,verdictText};
+$("verdict").innerText=verdict+" ("+label.toUpperCase()+")";
+$("confidenceFill").style.width=score+"%";
 
-if(chartInstance)chartInstance.destroy();
-chartInstance=new Chart($("chart"),{
-type:"bar",
+lastResults={EMI,riskRent,monthlySavings,yearlySavings,termSavings,label,verdict};
+
+renderProjection(termSavings,leaseTenure);
+
+}
+
+/* ---------- ADVANCED ANALYTICS CHART ---------- */
+
+function renderProjection(termSavings,months){
+
+let data=[];
+let step=termSavings/months;
+
+for(let i=1;i<=months;i++){
+data.push(step*i);
+}
+
+if(projectionChart)projectionChart.destroy();
+
+projectionChart=new Chart($("projectionChart"),{
+type:"line",
 data:{
-labels:["Market Rent","Risk Rent"],
-datasets:[{label:"Scenario: "+label,data:[marketRent,riskRent]}]
+labels:data.map((_,i)=>i+1),
+datasets:[{label:"Projected Savings Growth",data:data}]
 }
 });
+
 }
 
-/* ---------- PROFESSIONAL PDF ---------- */
+/* ---------- PROFESSIONAL PDF REPORT ---------- */
 
 async function downloadPDF(){
 
@@ -294,20 +332,20 @@ doc.text("Lease vs Rent Financial Decision Report",20,20);
 
 doc.setFontSize(12);
 doc.text("Executive Summary",20,40);
-doc.text("Verdict: "+lastResults.verdictText,20,50);
+doc.text("Verdict: "+lastResults.verdict,20,50);
 doc.text("Scenario: "+lastResults.label,20,60);
 
-doc.text("Financial Breakdown",20,80);
+doc.text("Financial Overview",20,80);
 doc.text("EMI: "+INR(lastResults.EMI),20,90);
 doc.text("Risk Adjusted Rent: "+INR(lastResults.riskRent),20,100);
 
 doc.text("Savings Analysis",20,120);
 doc.text("Monthly Savings: "+INR(lastResults.monthlySavings),20,130);
 doc.text("Yearly Savings: "+INR(lastResults.yearlySavings),20,140);
-doc.text("Lease Term Savings: "+INR(lastResults.termSavings),20,150);
+doc.text("Total Lease Term Savings: "+INR(lastResults.termSavings),20,150);
 
 doc.setFontSize(10);
-doc.text("Generated by Lease vs Rent AI Fintech Dashboard.",20,180);
+doc.text("Generated by Lease vs Rent Fintech Decision Engine.",20,180);
 
 doc.save("Lease_vs_Rent_Professional_Report.pdf");
 }
