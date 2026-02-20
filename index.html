@@ -2,7 +2,8 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent � Aladdin Mode (Logic Pure)</title>
+<title>Lease vs Rent – Refined Engine</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -130,7 +131,7 @@ min-height:320px;
 
 </div>
 
-<!-- TERMINAL -->
+<!-- RESULTS -->
 <div>
 
 <div class="panel">
@@ -141,13 +142,11 @@ min-height:320px;
 <div class="chartStack">
 <div class="chartCard"><canvas id="comparisonChart"></canvas></div>
 <div class="chartCard"><canvas id="radarChart"></canvas></div>
-<div class="chartCard"><canvas id="sensitivityChart"></canvas></div>
-<div class="chartCard"><canvas id="monteChart"></canvas></div>
+<div class="chartCard"><canvas id="projectionChart"></canvas></div>
 <div class="chartCard"><canvas id="compositionChart"></canvas></div>
 </div>
 
 </div>
-
 </div>
 
 <script>
@@ -156,13 +155,12 @@ min-height:320px;
 
 const $=id=>document.getElementById(id);
 
-function clean(v){return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;}
+function clean(v){return parseFloat((v||"").replace(/[₹,%\s,]/g,""))||0;}
 
 ["leaseAmount","loanAmount","loanRate","marketRent","maintenance","oppRate","riskPremium"]
 .forEach(id=>{
 const slider=$(id);
 const input=$(id+"Input");
-
 input.value=slider.value;
 
 slider.addEventListener("input",()=>{
@@ -176,10 +174,10 @@ if(!isNaN(val)){slider.value=val;calculate();}
 });
 });
 
-/* ===== ORIGINAL FINANCIAL ENGINE (LOGIC PURE) ===== */
+/* ===== UNICORN FINANCIAL ENGINE (LOGIC KEPT PURE) ===== */
 
 function num(id){return parseFloat($(id).value)||0;}
-function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
+function INR(n){return "₹ "+Math.round(n||0).toLocaleString("en-IN");}
 
 function emi(P,r,n){
 if(r===0)return P/n;
@@ -191,28 +189,29 @@ if(rate===0)return pmt*n;
 return pmt*((Math.pow(1+rate,n)-1)/rate);
 }
 
-let comparisonChart,radarChart,compositionChart,sensitivityChart,monteChart;
+let comparisonChart,radarChart,projectionChart,compositionChart;
 
-function coreCalc(riskOverride){
+function calculate(){
 
 const LEASE_AMOUNT=num("leaseAmount");
 const LOAN_AMOUNT=num("loanAmount");
 const OWN_FUNDS=Math.max(0,LEASE_AMOUNT-LOAN_AMOUNT);
 
 const LOAN_INTEREST_RATE=(num("loanRate")/100)/12;
+
+/* defaults preserved because UI does not expose them */
 const LOAN_TENURE=120;
 const LEASE_TENURE=24;
-
-const WITHHOLDING=0;         // logic preserved
-const REFUND_DELAY=0;        // logic preserved
+const WITHHOLDING=0;
+const REFUND_DELAY=0;
 
 const MAINTENANCE=num("maintenance");
 const MARKET_RENT=num("marketRent");
 
 const OPP_RATE=(num("oppRate")/100)/12;
-const RISK_PREMIUM=riskOverride ?? (num("riskPremium")/100);
+const RISK_PREMIUM=(num("riskPremium")/100);
 
-/* ===== ORIGINAL MODEL ===== */
+/* ===== ORIGINAL UNICORN ENGINE ===== */
 
 const EMI=emi(LOAN_AMOUNT,LOAN_INTEREST_RATE,LOAN_TENURE);
 const totalInterest=EMI*LOAN_TENURE-LOAN_AMOUNT;
@@ -231,7 +230,6 @@ emiOpp=futureValue(monthlyExtra,OPP_RATE,LEASE_TENURE)-(monthlyExtra*LEASE_TENUR
 }
 
 const delayCost=refund*OPP_RATE*REFUND_DELAY;
-
 const capitalLoss=totalInterest+withholdingLoss;
 
 const totalEconomic=
@@ -243,74 +241,51 @@ delayCost;
 const riskRent=(totalEconomic/LEASE_TENURE)*(1+RISK_PREMIUM);
 
 const monthlySavings=MARKET_RENT-riskRent;
-
 let score=MARKET_RENT>0?(monthlySavings/MARKET_RENT)*100:0;
 score=Math.max(0,Math.min(100,score));
 
-return{
-EMI,riskRent,monthlySavings,score,totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss,
-monthlyLeaseCost,MARKET_RENT
-};
-}
+/* ===== UI OUTPUT ===== */
 
-/* ===== MAIN CALCULATE ===== */
-
-function calculate(){
-
-const base=coreCalc();
-
-$("confidenceFill").style.width=base.score+"%";
+$("confidenceFill").style.width=score+"%";
 
 $("results").innerHTML=`
-<div class="metricValue">${INR(base.monthlySavings)}</div>
+<div class="metricValue">${INR(monthlySavings)}</div>
 <div>Monthly Savings</div>
-<div style="margin-top:10px;">EMI: ${INR(base.EMI)}</div>
-<div>Risk Rent: ${INR(base.riskRent)}</div>
+<div style="margin-top:10px;">EMI: ${INR(EMI)}</div>
+<div>Risk Rent: ${INR(riskRent)}</div>
 `;
 
-/* Charts */
+/* ===== CHARTS ===== */
 
 if(comparisonChart)comparisonChart.destroy();
 comparisonChart=new Chart($("comparisonChart"),{
 type:"bar",
 data:{labels:["Market Rent","Risk Rent","Lease Cost"],
-datasets:[{data:[base.MARKET_RENT,base.riskRent,base.monthlyLeaseCost]}]}
+datasets:[{data:[MARKET_RENT,riskRent,monthlyLeaseCost]}]}
 });
 
 if(radarChart)radarChart.destroy();
 radarChart=new Chart($("radarChart"),{
 type:"radar",
 data:{labels:["Savings Strength","Risk Load","Efficiency"],
-datasets:[{data:[base.score,(base.riskRent/base.MARKET_RENT)*100,base.score]}]}
+datasets:[{data:[score,(riskRent/MARKET_RENT)*100,score]}]}
 });
 
-let labels=[],data=[];
-for(let i=0.01;i<=0.15;i+=0.01){
-let t=coreCalc(i);
-labels.push((i*100).toFixed(0)+"%");
-data.push(t.monthlySavings);
-}
-if(sensitivityChart)sensitivityChart.destroy();
-sensitivityChart=new Chart($("sensitivityChart"),{
+let proj=[];
+let step=(monthlySavings*LEASE_TENURE)/LEASE_TENURE;
+for(let i=1;i<=LEASE_TENURE;i++){proj.push(step*i);}
+
+if(projectionChart)projectionChart.destroy();
+projectionChart=new Chart($("projectionChart"),{
 type:"line",
-data:{labels,datasets:[{label:"Risk Sensitivity",data}]}
-});
-
-let mc=[];
-for(let i=0.02;i<=0.12;i+=0.005){
-mc.push(coreCalc(i).monthlySavings);
-}
-if(monteChart)monteChart.destroy();
-monteChart=new Chart($("monteChart"),{
-type:"bar",
-data:{labels:mc.map((_,i)=>i+1),datasets:[{label:"Scenario Distribution",data:mc}]}
+data:{labels:proj.map((_,i)=>i+1),datasets:[{data:proj}]}
 });
 
 if(compositionChart)compositionChart.destroy();
 compositionChart=new Chart($("compositionChart"),{
 type:"doughnut",
 data:{labels:["Interest","OwnOpp","EmiOpp","Delay","Withholding"],
-datasets:[{data:[base.totalInterest,base.ownOpp,base.emiOpp,base.delayCost,base.withholdingLoss]}]}
+datasets:[{data:[totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss]}]}
 });
 
 }
