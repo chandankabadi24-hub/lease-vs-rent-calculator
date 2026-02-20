@@ -7,8 +7,6 @@
 
 <style>
 
-/* ===== ALADDIN DESIGN SYSTEM ===== */
-
 :root{
 --bg:#070e16;
 --card:#0f1c2a;
@@ -34,28 +32,71 @@ padding:28px;
 font-family:Inter,system-ui,Arial;
 background:var(--bg);
 color:var(--text);
+transition:.3s;
 }
 
-.container{max-width:1300px;margin:auto;display:grid;gap:22px;}
+.container{max-width:1350px;margin:auto;display:grid;gap:22px;}
 
 .card{background:var(--card);padding:22px;border-radius:16px;}
 
-.chartCard{background:var(--card);padding:20px;border-radius:16px;}
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+gap:18px;
+}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+
+label{font-size:12px;color:var(--muted);font-weight:600;}
+
+.micro{font-size:11px;color:var(--accent);font-weight:700;min-height:14px;}
+
+input[type=text]{
+padding:10px;
+border-radius:8px;
+border:none;
+background:#0a1826;
+color:var(--text);
+font-weight:700;
+}
+
+body.light input[type=text]{background:#eef3f8;}
+
+input[type=range]{width:100%;}
 
 .toggle{
-position:fixed;top:15px;right:15px;
-background:var(--accent);color:#fff;
-padding:8px 14px;border-radius:20px;
-cursor:pointer;font-weight:700;
+position:fixed;
+top:15px;
+right:15px;
+background:var(--accent);
+color:#fff;
+padding:8px 14px;
+border-radius:20px;
+cursor:pointer;
+font-weight:700;
 }
 
 .gaugeWrap{display:flex;justify-content:center;}
-.gauge{width:190px;height:190px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+.gauge{
+width:190px;
+height:190px;
+border-radius:50%;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
 .gaugeInner{
-width:150px;height:150px;border-radius:50%;
+width:150px;
+height:150px;
+border-radius:50%;
 background:var(--bg);
-display:flex;align-items:center;justify-content:center;
-font-size:34px;font-weight:900;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:34px;
+font-weight:900;
 }
 
 .savingsBox{
@@ -67,6 +108,12 @@ gap:14px;
 
 .metricValue{font-size:24px;font-weight:900;}
 
+.chartCard{
+background:var(--card);
+padding:20px;
+border-radius:16px;
+}
+
 </style>
 </head>
 
@@ -75,6 +122,67 @@ gap:14px;
 <div class="toggle" onclick="toggleTheme()"> Light /  Dark</div>
 
 <div class="container">
+
+<div class="card">
+<div class="grid">
+
+<div class="field">
+<label>Lease Amount</label>
+<input id="leaseAmount" class="currency">
+<input type="range" id="leaseAmountRange" min="100000" max="5000000" step="50000">
+</div>
+
+<div class="field">
+<label>Loan Amount</label>
+<input id="loanAmount" class="currency">
+<input type="range" id="loanAmountRange" min="0" max="3000000" step="50000">
+</div>
+
+<div class="field">
+<label>Loan Interest %</label>
+<input id="loanRate" class="percent">
+<div id="emiLabel" class="micro"></div>
+<input type="range" id="loanRateRange" min="1" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Opportunity Cost %</label>
+<input id="oppRate" class="percent">
+<div id="oppLabel" class="micro"></div>
+<input type="range" id="oppRateRange" min="1" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Risk Premium %</label>
+<input id="riskPremium" class="percent">
+<div id="riskLabel" class="micro"></div>
+<input type="range" id="riskPremiumRange" min="0" max="20" step="0.1">
+</div>
+
+<div class="field">
+<label>Market Rent</label>
+<input id="marketRent" class="currency">
+<input type="range" id="marketRentRange" min="5000" max="100000" step="1000">
+</div>
+
+<div class="field">
+<label>Maintenance</label>
+<input id="maintenance" class="currency">
+<input type="range" id="maintenanceRange" min="0" max="20000" step="500">
+</div>
+
+<div class="field">
+<label>Notional Rent Increment %</label>
+<input id="rentIncrement" class="percent">
+</div>
+
+<input id="loanTenure" placeholder="Loan Tenure Months">
+<input id="leaseTenure" placeholder="Lease Tenure Months">
+<input id="withholding" class="percent" placeholder="Withholding %">
+<input id="refundDelay" placeholder="Refund Delay Months">
+
+</div>
+</div>
 
 <div class="card">
 <div class="gaugeWrap">
@@ -98,72 +206,128 @@ gap:14px;
 
 <script>
 
-/* ===== THEME ===== */
 function toggleTheme(){document.body.classList.toggle("light");}
 
 const $=id=>document.getElementById(id);
 
+function cleanNumber(v){return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;}
+function num(id){return cleanNumber($(id).value);}
 function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
 
-/* ===== ORIGINAL ENGINE VARIABLES (SIMULATION ONLY) ===== */
+function formatINR(n){return " "+Number(n).toLocaleString("en-IN");}
+function formatPercent(n){return Number(n).toLocaleString("en-IN",{maximumFractionDigits:2})+"%";}
+
+function attachFormatter(selector,formatter){
+document.querySelectorAll(selector).forEach(el=>{
+let timer;
+el.addEventListener("input",()=>{
+clearTimeout(timer);
+timer=setTimeout(()=>{
+let raw=cleanNumber(el.value);
+if(raw) el.value=formatter(raw);
+calculate();
+},300);
+});
+});
+}
+attachFormatter(".currency",formatINR);
+attachFormatter(".percent",formatPercent);
+
+["leaseAmount","loanAmount","loanRate","oppRate","riskPremium","marketRent","maintenance"]
+.forEach(id=>{
+let input=$(id);
+let range=$(id+"Range");
+if(!range) return;
+range.addEventListener("input",()=>{input.value=range.value;calculate();});
+input.addEventListener("input",()=>{range.value=cleanNumber(input.value);});
+});
 
 let waterfallChart,forwardRentChart,breakEvenChart;
 
+function emi(P,r,n){
+if(r===0)return P/n;
+return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+}
+
 function calculate(){
 
-/* NOTE:
-Financial logic is assumed already present exactly as your last code.
-Below variables come from your engine — unchanged.
-*/
+const LEASE_AMOUNT=num("leaseAmount");
+const LOAN_AMOUNT=num("loanAmount");
+const OWN_FUNDS=Math.max(0,LEASE_AMOUNT-LOAN_AMOUNT);
 
-const MARKET_RENT = 25000;        // placeholder for demo
-const LEASE_TENURE = 36;
-const RENT_INCREMENT = 0.05;
-const monthlySavings = 4000;
-const yearlySavings = monthlySavings*12;
-const termSavings = monthlySavings*LEASE_TENURE;
-const totalInterest=500000;
-const ownOpp=120000;
-const emiOpp=80000;
-const delayCost=0;
-const withholdingLoss=0;
-const riskRent=21000;
+const LOAN_INTEREST_RATE=(num("loanRate")/100)/12;
+const LOAN_TENURE=num("loanTenure");
+const LEASE_TENURE=num("leaseTenure");
 
-let score=20;
+const WITHHOLDING=num("withholding")/100;
+const REFUND_DELAY=num("refundDelay");
 
-/* ===== GAUGE ===== */
+const MAINTENANCE=num("maintenance");
+const MARKET_RENT=num("marketRent");
+
+const OPP_RATE=(num("oppRate")/100)/12;
+const RISK_PREMIUM=num("riskPremium")/100;
+const RENT_INCREMENT=num("rentIncrement")/100;
+
+const EMI=emi(LOAN_AMOUNT,LOAN_INTEREST_RATE,LOAN_TENURE);
+const totalInterest=EMI*LOAN_TENURE-LOAN_AMOUNT;
+
+const monthlyLeaseCost=EMI+MAINTENANCE;
+
+const refund=LEASE_AMOUNT*(1-WITHHOLDING);
+const withholdingLoss=LEASE_AMOUNT*WITHHOLDING;
+
+const ownOpp=OWN_FUNDS*(Math.pow(1+OPP_RATE,LEASE_TENURE)-1);
+
+let emiOpp=0;
+
+for(let m=1;m<=LEASE_TENURE;m++){
+const yearIndex=Math.floor((m-1)/12);
+const adjustedRent=MARKET_RENT*Math.pow(1+RENT_INCREMENT,yearIndex);
+const extra=monthlyLeaseCost-adjustedRent;
+if(extra>0){
+emiOpp+=extra*(Math.pow(1+OPP_RATE,LEASE_TENURE-m+1)-1);
+}
+}
+
+const delayCost=refund*OPP_RATE*REFUND_DELAY;
+
+const capitalLoss=totalInterest+withholdingLoss;
+
+const totalEconomic=capitalLoss+ownOpp+emiOpp+delayCost;
+
+const riskRent=(totalEconomic/LEASE_TENURE)*(1+RISK_PREMIUM);
+
+const monthlySavings=MARKET_RENT-riskRent;
+const yearlySavings=monthlySavings*12;
+const termSavings=monthlySavings*LEASE_TENURE;
+
+let score=MARKET_RENT>0?(monthlySavings/MARKET_RENT)*100:0;
+score=Math.max(0,Math.min(100,score));
 
 let color="var(--amber)";
 if(score<5) color="var(--red)";
 if(score>20) color="var(--green)";
-
-$("gauge").style.background=
-`conic-gradient(${color} ${score*3.6}deg,#243648 ${score*3.6}deg)`;
+$("gauge").style.background=`conic-gradient(${color} ${score*3.6}deg,#243648 ${score*3.6}deg)`;
 
 $("dial").innerText=Math.round(score);
 
-/* ===== SAVINGS ===== */
+$("emiLabel").innerText="EMI: "+INR(EMI);
+$("oppLabel").innerText="Opp Cost Impact: "+INR(ownOpp);
+$("riskLabel").innerText="Risk Rent: "+INR(riskRent);
 
 $("mSave").innerText=INR(monthlySavings);
 $("ySave").innerText=INR(yearlySavings);
 $("tSave").innerText=INR(termSavings);
 
-/* ===== WATERFALL ===== */
-
 if(waterfallChart)waterfallChart.destroy();
 waterfallChart=new Chart($("waterfallChart"),{
 type:"bar",
-data:{
-labels:["Interest","Opp Cost","EMI Opp","Delay","Withholding"],
-datasets:[{data:[totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss]}]
-}
+data:{labels:["Interest","Opp Cost","EMI Opp","Delay","Withholding"],
+datasets:[{data:[totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss]}]}
 });
 
-/* ===== FORWARD RENT CURVE ===== */
-
-let rentSeries=[];
-let labels=[];
-
+let rentSeries=[],labels=[];
 for(let m=1;m<=LEASE_TENURE;m++){
 let yearIndex=Math.floor((m-1)/12);
 rentSeries.push(MARKET_RENT*Math.pow(1+RENT_INCREMENT,yearIndex));
@@ -176,11 +340,7 @@ type:"line",
 data:{labels:labels,datasets:[{label:"Forward Rent Curve",data:rentSeries}]}
 });
 
-/* ===== BREAK EVEN HEAT SURFACE ===== */
-
-let riskAxis=[];
-let savingsAxis=[];
-
+let riskAxis=[],savingsAxis=[];
 for(let r=0;r<=20;r+=1){
 let simulatedRiskRent=riskRent*(1+r/100);
 riskAxis.push(r+"%");
@@ -195,7 +355,9 @@ data:{labels:riskAxis,datasets:[{label:"Break-even Curve",data:savingsAxis}]}
 
 }
 
-calculate();
+document.querySelectorAll("input").forEach(el=>{
+el.addEventListener("input",calculate);
+});
 
 </script>
 </body>
