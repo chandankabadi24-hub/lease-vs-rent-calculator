@@ -1,464 +1,1030 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent – Aladdin Fintech Experience</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lease vs Rent - Aladdin Fintech Experience</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* ============================= */
+        /* ===== ELITE FINTECH UI ====== */
+        /* ============================= */
 
-<style>
+        :root {
+            --bg: #060d15;
+            --card: #0e1a27;
+            --text: #eaf2f9;
+            --accent: #4db3ff;
+            --muted: #94a8bd;
+            --green: #2ecc71;
+            --amber: #f1c40f;
+            --red: #ff4d4d;
+            --purple: #9b59b6;
+            --border: #1a2a38;
+        }
 
-/* ============================= */
-/* ===== ELITE FINTECH UI ====== */
-/* ============================= */
+        body.light {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --text: #0b1622;
+            --accent: #1f4e79;
+            --muted: #5c6c7a;
+            --border: #e0e8f0;
+        }
 
-:root{
---bg:#060d15;
---card:#0e1a27;
---text:#eaf2f9;
---accent:#4db3ff;
---muted:#94a8bd;
---green:#2ecc71;
---amber:#f1c40f;
---red:#ff4d4d;
-}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-body.light{
---bg:#f4f7fb;
---card:#ffffff;
---text:#0b1622;
---accent:#1f4e79;
---muted:#5c6c7a;
-}
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            transition: 0.35s ease;
+            scroll-behavior: smooth;
+            padding: 20px;
+            min-height: 100vh;
+        }
 
-body{
-margin:0;
-padding:32px;
-font-family:Inter,system-ui,Arial;
-background:var(--bg);
-color:var(--text);
-transition:.35s;
-scroll-behavior:smooth;
-}
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            gap: 28px;
+        }
 
-.container{
-max-width:1400px;
-margin:auto;
-display:grid;
-gap:28px;
-}
+        /* ===== HEADER ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
 
-/* ===== CARDS ===== */
+        .logo {
+            font-size: 28px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
 
-.card,.chartCard{
-background:var(--card);
-padding:24px;
-border-radius:18px;
-box-shadow:0 18px 40px rgba(0,0,0,.35);
-opacity:0;
-transform:translateY(20px);
-transition:all .6s ease;
-}
+        .toggle {
+            background: var(--accent);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 700;
+            border: none;
+            transition: 0.3s;
+        }
 
-.card.show,.chartCard.show{
-opacity:1;
-transform:translateY(0);
-}
+        .toggle:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(77, 179, 255, 0.3);
+        }
 
-.card:hover,.chartCard:hover{
-transform:translateY(-2px);
-box-shadow:0 25px 55px rgba(0,0,0,.45);
-}
+        /* ===== CARDS ===== */
+        .card, .chartCard {
+            background: linear-gradient(135deg, var(--card), rgba(30, 40, 50, 0.5));
+            padding: 28px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-gap:22px;
-}
+        .card.show, .chartCard.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-.field{display:flex;flex-direction:column;gap:6px;}
+        .card:hover, .chartCard:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 55px rgba(0, 0, 0, 0.45);
+            border-color: var(--accent);
+        }
 
-label{
-font-size:12px;
-color:var(--muted);
-font-weight:600;
-letter-spacing:.4px;
-}
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.micro{
-font-size:11px;
-color:var(--accent);
-font-weight:700;
-min-height:14px;
-transition:.25s;
-}
+        .card-icon {
+            font-size: 24px;
+        }
 
-.focusGlow{
-transform:scale(1.05);
-}
+        /* ===== GRID LAYOUT ===== */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
 
-input[type=text]{
-padding:12px;
-border-radius:10px;
-border:none;
-background:#0a1826;
-color:var(--text);
-font-weight:700;
-}
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                gap: 12px;
+            }
+        }
 
-body.light input[type=text]{background:#eef3f8;}
+        /* ===== FORM FIELDS ===== */
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
 
-input[type=range]{width:100%;cursor:pointer;}
+        label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+        }
 
-.toggle{
-position:fixed;
-top:16px;
-right:16px;
-background:var(--accent);
-color:#fff;
-padding:10px 16px;
-border-radius:30px;
-cursor:pointer;
-font-weight:700;
-z-index:99;
-}
+        input[type="text"],
+        input[type="number"] {
+            padding: 12px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border);
+            background: rgba(10, 24, 38, 0.5);
+            color: var(--text);
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            transition: 0.25s;
+        }
 
-/* ===== GAUGE ===== */
+        body.light input[type="text"],
+        body.light input[type="number"] {
+            background: rgba(240, 245, 250, 0.7);
+        }
 
-.gaugeWrap{display:flex;justify-content:center;margin-top:8px;}
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+            background: var(--card);
+            box-shadow: 0 0 12px rgba(77, 179, 255, 0.2);
+        }
 
-.gauge{
-width:200px;
-height:200px;
-border-radius:50%;
-display:flex;
-align-items:center;
-justify-content:center;
-transition:.5s;
-}
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--border);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
 
-.gaugeInner{
-width:155px;
-height:155px;
-border-radius:50%;
-background:var(--bg);
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:36px;
-font-weight:900;
-}
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(77, 179, 255, 0.4);
+        }
 
-.savingsBox{
-margin-top:18px;
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:16px;
-}
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px rgba(77, 179, 255, 0.4);
+        }
 
-.metricValue{
-font-size:26px;
-font-weight:900;
-}
+        .micro {
+            font-size: 11px;
+            color: var(--accent);
+            font-weight: 700;
+            min-height: 14px;
+            transition: 0.25s;
+        }
 
-</style>
+        .focusGlow {
+            transform: scale(1.05);
+            color: var(--green);
+        }
+
+        /* ===== GAUGE ===== */
+        .gauge-section {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .gaugeWrap {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .gauge {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(77, 179, 255, 0.2);
+        }
+
+        .gaugeInner {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-size: 42px;
+            font-weight: 900;
+            box-shadow: inset 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gauge-label {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-top: 8px;
+        }
+
+        .gauge-interpretation {
+            font-size: 14px;
+            margin-top: 16px;
+            color: var(--muted);
+            line-height: 1.6;
+            min-height: 40px;
+        }
+
+        /* ===== METRICS ===== */
+        .savingsBox {
+            margin-top: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: rgba(77, 179, 255, 0.1);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(77, 179, 255, 0.2);
+            transition: 0.3s;
+        }
+
+        .metric-card:hover {
+            background: rgba(77, 179, 255, 0.15);
+            border-color: var(--accent);
+        }
+
+        .metric-label {
+            font-size: 11px;
+            color: var(--muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+        }
+
+        /* ===== CHARTS ===== */
+        .chartCard {
+            position: relative;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 380px;
+            margin-top: 16px;
+        }
+
+        canvas {
+            max-height: 100% !important;
+        }
+
+        .chart-description {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+            line-height: 1.6;
+        }
+
+        /* ===== CHARTS GRID ===== */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 24px;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .card, .chartCard {
+                padding: 16px;
+            }
+
+            .card-title {
+                font-size: 16px;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .gauge {
+                width: 160px;
+                height: 160px;
+            }
+
+            .gaugeInner {
+                width: 130px;
+                height: 130px;
+                font-size: 32px;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .show {
+            animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="toggle" onclick="toggleTheme()"> Light /  Dark</div>
-
-<div class="container">
-
-<!-- INPUT PANEL -->
-<div class="card">
-<div class="grid">
-
-<div class="field">
-<label>Lease Amount</label>
-<input id="leaseAmount" class="currency">
-<input type="range" id="leaseAmountRange" min="100000" max="5000000" step="50000">
-</div>
-
-<div class="field">
-<label>Loan Amount</label>
-<input id="loanAmount" class="currency">
-<input type="range" id="loanAmountRange" min="0" max="3000000" step="50000">
-</div>
-
-<div class="field">
-<label>Loan Interest %</label>
-<input id="loanRate" class="percent">
-<div id="emiLabel" class="micro"></div>
-<input type="range" id="loanRateRange" min="1" max="20" step="0.1">
-</div>
-
-<div class="field">
-<label>Opportunity Cost %</label>
-<input id="oppRate" class="percent">
-<div id="oppLabel" class="micro"></div>
-<input type="range" id="oppRateRange" min="1" max="20" step="0.1">
-</div>
-
-<div class="field">
-<label>Risk Premium %</label>
-<input id="riskPremium" class="percent">
-<div id="riskLabel" class="micro"></div>
-<input type="range" id="riskPremiumRange" min="0" max="20" step="0.1">
-</div>
-
-<div class="field">
-<label>Market Rent</label>
-<input id="marketRent" class="currency">
-<input type="range" id="marketRentRange" min="5000" max="100000" step="1000">
-</div>
-
-<div class="field">
-<label>Maintenance</label>
-<input id="maintenance" class="currency">
-<input type="range" id="maintenanceRange" min="0" max="20000" step="500">
-</div>
-
-<div class="field">
-<label>Notional Rent Increment %</label>
-<input id="rentIncrement" class="percent">
-</div>
-
-<input id="loanTenure" placeholder="Loan Tenure Months">
-<input id="leaseTenure" placeholder="Lease Tenure Months">
-<input id="withholding" class="percent" placeholder="Withholding %">
-<input id="refundDelay" placeholder="Refund Delay Months">
-
-</div>
-</div>
-
-<!-- GAUGE PANEL -->
-<div class="card">
-<div class="gaugeWrap">
-<div id="gauge" class="gauge">
-<div id="dial" class="gaugeInner">0</div>
-</div>
-</div>
-
-<div class="savingsBox">
-<div><div>Monthly Savings</div><div id="mSave" class="metricValue"></div></div>
-<div><div>Yearly Savings</div><div id="ySave" class="metricValue"></div></div>
-<div><div>Lease Term Savings</div><div id="tSave" class="metricValue"></div></div>
-</div>
-</div>
-
-<div class="chartCard"><canvas id="waterfallChart"></canvas></div>
-<div class="chartCard"><canvas id="forwardRentChart"></canvas></div>
-<div class="chartCard"><canvas id="breakEvenChart"></canvas></div>
-
-</div>
-
-<script>
-
-/* ================= THEME ================= */
-
-function toggleTheme(){
-document.body.classList.toggle("light");
-}
-
-/* ================= SCROLL REVEAL ================= */
-
-const observer=new IntersectionObserver(entries=>{
-entries.forEach(e=>{
-if(e.isIntersecting) e.target.classList.add("show");
-});
-},{threshold:.1});
-
-document.querySelectorAll(".card,.chartCard").forEach(el=>observer.observe(el));
-
-/* ================= HELPERS ================= */
-
-const $=id=>document.getElementById(id);
-
-function cleanNumber(v){
-return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;
-}
-function num(id){return cleanNumber($(id).value);}
-function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
-
-function formatINR(n){return " "+Number(n).toLocaleString("en-IN");}
-function formatPercent(n){return Number(n).toLocaleString("en-IN",{maximumFractionDigits:2})+"%";}
-
-function attachFormatter(selector,formatter){
-document.querySelectorAll(selector).forEach(el=>{
-let timer;
-el.addEventListener("input",()=>{
-clearTimeout(timer);
-timer=setTimeout(()=>{
-let raw=cleanNumber(el.value);
-if(raw) el.value=formatter(raw);
-calculate();
-},250);
-});
-});
-}
-attachFormatter(".currency",formatINR);
-attachFormatter(".percent",formatPercent);
-
-/* ================= RANGE SYNC ================= */
-
-["leaseAmount","loanAmount","loanRate","oppRate","riskPremium","marketRent","maintenance"]
-.forEach(id=>{
-let input=$(id);
-let range=$(id+"Range");
-if(!range) return;
-range.addEventListener("input",()=>{input.value=range.value;calculate();});
-input.addEventListener("input",()=>{range.value=cleanNumber(input.value);});
-});
-
-/* ================= ENGINE (UNCHANGED LOGIC) ================= */
-
-let waterfallChart,forwardRentChart,breakEvenChart;
-
-function emi(P,r,n){
-if(r===0)return P/n;
-return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
-}
-
-function calculate(){
-
-document.querySelectorAll(".micro").forEach(m=>{
-m.classList.add("focusGlow");
-setTimeout(()=>m.classList.remove("focusGlow"),250);
-});
-
-const LEASE_AMOUNT=num("leaseAmount");
-const LOAN_AMOUNT=num("loanAmount");
-const OWN_FUNDS=Math.max(0,LEASE_AMOUNT-LOAN_AMOUNT);
-
-const LOAN_INTEREST_RATE=(num("loanRate")/100)/12;
-const LOAN_TENURE=num("loanTenure");
-const LEASE_TENURE=num("leaseTenure");
-
-const WITHHOLDING=num("withholding")/100;
-const REFUND_DELAY=num("refundDelay");
-
-const MAINTENANCE=num("maintenance");
-const MARKET_RENT=num("marketRent");
-
-const OPP_RATE=(num("oppRate")/100)/12;
-const RISK_PREMIUM=num("riskPremium")/100;
-const RENT_INCREMENT=num("rentIncrement")/100;
-
-const EMI=emi(LOAN_AMOUNT,LOAN_INTEREST_RATE,LOAN_TENURE);
-const totalInterest=EMI*LOAN_TENURE-LOAN_AMOUNT;
-
-const monthlyLeaseCost=EMI+MAINTENANCE;
-
-const refund=LEASE_AMOUNT*(1-WITHHOLDING);
-const withholdingLoss=LEASE_AMOUNT*WITHHOLDING;
-
-const ownOpp=OWN_FUNDS*(Math.pow(1+OPP_RATE,LEASE_TENURE)-1);
-
-let emiOpp=0;
-
-for(let m=1;m<=LEASE_TENURE;m++){
-const yearIndex=Math.floor((m-1)/12);
-const adjustedRent=MARKET_RENT*Math.pow(1+RENT_INCREMENT,yearIndex);
-const extra=monthlyLeaseCost-adjustedRent;
-if(extra>0){
-emiOpp+=extra*(Math.pow(1+OPP_RATE,LEASE_TENURE-m+1)-1);
-}
-}
-
-const delayCost=refund*OPP_RATE*REFUND_DELAY;
-
-const capitalLoss=totalInterest+withholdingLoss;
-
-const totalEconomic=capitalLoss+ownOpp+emiOpp+delayCost;
-
-const riskRent=(totalEconomic/LEASE_TENURE)*(1+RISK_PREMIUM);
-
-const monthlySavings=MARKET_RENT-riskRent;
-const yearlySavings=monthlySavings*12;
-const termSavings=monthlySavings*LEASE_TENURE;
-
-let score=MARKET_RENT>0?(monthlySavings/MARKET_RENT)*100:0;
-score=Math.max(0,Math.min(100,score));
-
-let color="var(--amber)";
-if(score<5) color="var(--red)";
-if(score>20) color="var(--green)";
-
-$("gauge").style.background=
-`conic-gradient(${color} ${score*3.6}deg,#243648 ${score*3.6}deg)`;
-
-$("dial").innerText=Math.round(score);
-
-$("emiLabel").innerText="EMI: "+INR(EMI);
-$("oppLabel").innerText="Opp Cost Impact: "+INR(ownOpp);
-$("riskLabel").innerText="Risk Rent: "+INR(riskRent);
-
-$("mSave").innerText=INR(monthlySavings);
-$("ySave").innerText=INR(yearlySavings);
-$("tSave").innerText=INR(termSavings);
-
-/* ===== WATERFALL UPDATE ===== */
-
-if(!waterfallChart){
-waterfallChart=new Chart($("waterfallChart"),{
-type:"bar",
-data:{labels:["Interest","Opp Cost","EMI Opp","Delay","Withholding"],
-datasets:[{data:[0,0,0,0,0]}]},
-options:{animation:{duration:700,easing:"easeOutQuart"}}
-});
-}
-
-waterfallChart.data.datasets[0].data=[totalInterest,ownOpp,emiOpp,delayCost,withholdingLoss];
-waterfallChart.update();
-
-/* ===== FORWARD RENT UPDATE ===== */
-
-let rentSeries=[],labels=[];
-for(let m=1;m<=LEASE_TENURE;m++){
-let yearIndex=Math.floor((m-1)/12);
-rentSeries.push(MARKET_RENT*Math.pow(1+RENT_INCREMENT,yearIndex));
-labels.push(m);
-}
-
-if(!forwardRentChart){
-forwardRentChart=new Chart($("forwardRentChart"),{
-type:"line",
-data:{labels:labels,datasets:[{label:"Forward Rent Curve",data:rentSeries}]},
-options:{animation:{duration:800}}
-});
-}else{
-forwardRentChart.data.labels=labels;
-forwardRentChart.data.datasets[0].data=rentSeries;
-forwardRentChart.update();
-}
-
-/* ===== BREAK EVEN UPDATE ===== */
-
-let riskAxis=[],savingsAxis=[];
-for(let r=0;r<=20;r+=1){
-let simulatedRiskRent=riskRent*(1+r/100);
-riskAxis.push(r+"%");
-savingsAxis.push(MARKET_RENT-simulatedRiskRent);
-}
-
-if(!breakEvenChart){
-breakEvenChart=new Chart($("breakEvenChart"),{
-type:"line",
-data:{labels:riskAxis,datasets:[{label:"Break-even Curve",data:savingsAxis}]},
-options:{animation:{duration:800}}
-});
-}else{
-breakEvenChart.data.labels=riskAxis;
-breakEvenChart.data.datasets[0].data=savingsAxis;
-breakEvenChart.update();
-}
-
-}
-
-document.querySelectorAll("input").forEach(el=>{
-el.addEventListener("input",calculate);
-});
-
-</script>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="logo"> Aladdin Finance</div>
+        <button class="toggle" onclick="toggleTheme()">
+            <span id="theme-icon"></span> <span id="theme-text">Dark</span>
+        </button>
+    </div>
+
+    <div class="container">
+
+        <!-- INPUT PANEL -->
+        <div class="card">
+            <div class="card-title"><span class="card-icon"></span>Financial Parameters</div>
+            <div class="grid">
+
+                <div class="field">
+                    <label>Lease Amount ()</label>
+                    <input id="leaseAmount" type="text" value="2000000">
+                    <input type="range" id="leaseAmountRange" min="100000" max="5000000" step="50000" value="2000000">
+                </div>
+
+                <div class="field">
+                    <label>Loan Amount ()</label>
+                    <input id="loanAmount" type="text" value="1500000">
+                    <input type="range" id="loanAmountRange" min="0" max="3000000" step="50000" value="1500000">
+                </div>
+
+                <div class="field">
+                    <label>Loan Interest Rate (%)</label>
+                    <input id="loanRate" type="text" value="8.5">
+                    <div id="emiLabel" class="micro"></div>
+                    <input type="range" id="loanRateRange" min="1" max="20" step="0.1" value="8.5">
+                </div>
+
+                <div class="field">
+                    <label>Opportunity Cost (%)</label>
+                    <input id="oppRate" type="text" value="12">
+                    <div id="oppLabel" class="micro"></div>
+                    <input type="range" id="oppRateRange" min="1" max="20" step="0.1" value="12">
+                </div>
+
+                <div class="field">
+                    <label>Risk Premium (%)</label>
+                    <input id="riskPremium" type="text" value="3">
+                    <div id="riskLabel" class="micro"></div>
+                    <input type="range" id="riskPremiumRange" min="0" max="20" step="0.1" value="3">
+                </div>
+
+                <div class="field">
+                    <label>Market Rent ()</label>
+                    <input id="marketRent" type="text" value="45000">
+                    <input type="range" id="marketRentRange" min="5000" max="100000" step="1000" value="45000">
+                </div>
+
+                <div class="field">
+                    <label>Monthly Maintenance ()</label>
+                    <input id="maintenance" type="text" value="5000">
+                    <input type="range" id="maintenanceRange" min="0" max="20000" step="500" value="5000">
+                </div>
+
+                <div class="field">
+                    <label>Rent Increment (%)</label>
+                    <input id="rentIncrement" type="text" value="5">
+                    <input type="range" id="rentIncrementRange" min="0" max="10" step="0.5" value="5">
+                </div>
+
+                <div class="field">
+                    <label>Loan Tenure (Months)</label>
+                    <input id="loanTenure" type="text" value="240">
+                </div>
+
+                <div class="field">
+                    <label>Lease Tenure (Months)</label>
+                    <input id="leaseTenure" type="text" value="240">
+                </div>
+
+                <div class="field">
+                    <label>Withholding (%)</label>
+                    <input id="withholding" type="text" value="0">
+                </div>
+
+                <div class="field">
+                    <label>Refund Delay (Months)</label>
+                    <input id="refundDelay" type="text" value="0">
+                </div>
+
+            </div>
+        </div>
+
+        <!-- GAUGE PANEL -->
+        <div class="card">
+            <div class="card-title"><span class="card-icon"></span>Financial Decision Score</div>
+            <div class="gauge-section">
+                <div class="gaugeWrap">
+                    <div id="gauge" class="gauge">
+                        <div class="gaugeInner">
+                            <span id="dial">0</span>
+                            <div class="gauge-label">Score</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gauge-interpretation" id="interpretation">Analyzing parameters...</div>
+            </div>
+
+            <div class="savingsBox">
+                <div class="metric-card">
+                    <div class="metric-label">Monthly Savings</div>
+                    <div id="mSave" class="metric-value">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Yearly Savings</div>
+                    <div id="ySave" class="metric-value">0</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Total Lease Term Savings</div>
+                    <div id="tSave" class="metric-value">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+            <div class="chartCard">
+                <div class="card-title"><span class="card-icon"></span>Economic Cost Breakdown</div>
+                <div class="chart-container">
+                    <canvas id="waterfallChart"></canvas>
+                </div>
+                <div class="chart-description">
+                     Shows all cost components: interest paid, opportunity costs, and withholding losses that make up total economic burden.
+                </div>
+            </div>
+
+            <div class="chartCard">
+                <div class="card-title"><span class="card-icon"></span>Forward Rent Projection</div>
+                <div class="chart-container">
+                    <canvas id="forwardRentChart"></canvas>
+                </div>
+                <div class="chart-description">
+                     Projects how market rent will escalate over your lease tenure based on inflation assumptions.
+                </div>
+            </div>
+
+            <div class="chartCard">
+                <div class="card-title"><span class="card-icon"></span>Break-Even Sensitivity</div>
+                <div class="chart-container">
+                    <canvas id="breakEvenChart"></canvas>
+                </div>
+                <div class="chart-description">
+                     Tests how savings change with risk scenarios. Shows decision robustness against market volatility.
+                </div>
+            </div>
+
+            <div class="chartCard">
+                <div class="card-title"><span class="card-icon"></span>Cumulative Cost Comparison</div>
+                <div class="chart-container">
+                    <canvas id="cumulativeChart"></canvas>
+                </div>
+                <div class="chart-description">
+                     Total accumulated costs over time. Intersection point shows when leasing becomes more economical.
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+
+        /* ================= THEME ================= */
+        function toggleTheme() {
+            const isDark = !document.body.classList.contains('light');
+            document.body.classList.toggle('light');
+            
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+            updateThemeUI();
+            
+            if (waterfallChart) waterfallChart.update();
+            if (forwardRentChart) forwardRentChart.update();
+            if (breakEvenChart) breakEvenChart.update();
+            if (cumulativeChart) cumulativeChart.update();
+        }
+
+        function updateThemeUI() {
+            const isDark = !document.body.classList.contains('light');
+            document.getElementById('theme-icon').textContent = isDark ? '' : '';
+            document.getElementById('theme-text').textContent = isDark ? 'Dark' : 'Light';
+        }
+
+        // Load saved theme
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.add('light');
+            updateThemeUI();
+        }
+
+        /* ================= SCROLL REVEAL ================= */
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    e.target.classList.add('show');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.card, .chartCard').forEach(el => observer.observe(el));
+
+        /* ================= HELPERS ================= */
+        const $ = id => document.getElementById(id);
+
+        function cleanNumber(v) {
+            return parseFloat((v || '').replace(/[,%\s,]/g, '')) || 0;
+        }
+
+        function num(id) {
+            const val = cleanNumber($(id).value);
+            return isNaN(val) ? 0 : val;
+        }
+
+        function formatINR(n) {
+            n = Math.max(0, Number(n) || 0);
+            return '' + Math.round(n).toLocaleString('en-IN');
+        }
+
+        function formatPercent(n) {
+            n = Number(n) || 0;
+            return Number(n).toLocaleString('en-IN', { maximumFractionDigits: 2 }) + '%';
+        }
+
+        /* ================= INPUT SYNC ================= */
+        ['leaseAmount', 'loanAmount', 'loanRate', 'oppRate', 'riskPremium', 'marketRent', 'maintenance', 'rentIncrement']
+            .forEach(id => {
+                const input = $(id);
+                const range = $(id + 'Range');
+                if (!range) return;
+
+                range.addEventListener('input', () => {
+                    input.value = range.value;
+                    calculate();
+                });
+
+                input.addEventListener('input', () => {
+                    const clean = cleanNumber(input.value);
+                    range.value = clean;
+                    calculate();
+                });
+            });
+
+        /* ================= CHARTS ================= */
+        let waterfallChart, forwardRentChart, breakEvenChart, cumulativeChart;
+
+        function initCharts(labels1, data1, labels2, data2, labels3, data3, labels4, data4Buy, data4Lease) {
+            const colors = {
+                primary: '#4db3ff',
+                secondary: '#9b59b6',
+                success: '#2ecc71',
+                danger: '#ff4d4d',
+                warning: '#f1c40f'
+            };
+
+            // WATERFALL CHART
+            if (!waterfallChart) {
+                waterfallChart = new Chart($('waterfallChart'), {
+                    type: 'bar',
+                    data: {
+                        labels: labels1,
+                        datasets: [{
+                            label: 'Economic Costs',
+                            data: data1,
+                            backgroundColor: [colors.danger, colors.secondary, colors.warning, colors.primary, colors.danger],
+                            borderRadius: 6,
+                            borderWidth: 0,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: v => formatINR(v),
+                                    color: '#94a8bd'
+                                },
+                                grid: { color: 'rgba(77, 179, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a8bd' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } else {
+                waterfallChart.data.datasets[0].data = data1;
+                waterfallChart.update();
+            }
+
+            // FORWARD RENT CHART
+            if (!forwardRentChart) {
+                forwardRentChart = new Chart($('forwardRentChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels2,
+                        datasets: [{
+                            label: 'Market Rent (Projected)',
+                            data: data2,
+                            borderColor: colors.primary,
+                            backgroundColor: 'rgba(77, 179, 255, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: colors.primary,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: v => formatINR(v),
+                                    color: '#94a8bd'
+                                },
+                                grid: { color: 'rgba(77, 179, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a8bd' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } else {
+                forwardRentChart.data.labels = labels2;
+                forwardRentChart.data.datasets[0].data = data2;
+                forwardRentChart.update();
+            }
+
+            // BREAK-EVEN CHART
+            if (!breakEvenChart) {
+                breakEvenChart = new Chart($('breakEvenChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels3,
+                        datasets: [{
+                            label: 'Savings Under Risk Scenarios',
+                            data: data3,
+                            borderColor: colors.success,
+                            backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 3,
+                            pointBackgroundColor: colors.success,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: v => formatINR(v),
+                                    color: '#94a8bd'
+                                },
+                                grid: { color: 'rgba(77, 179, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a8bd' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } else {
+                breakEvenChart.data.labels = labels3;
+                breakEvenChart.data.datasets[0].data = data3;
+                breakEvenChart.update();
+            }
+
+            // CUMULATIVE CHART
+            if (!cumulativeChart) {
+                cumulativeChart = new Chart($('cumulativeChart'), {
+                    type: 'line',
+                    data: {
+                        labels: labels4,
+                        datasets: [
+                            {
+                                label: 'Cumulative Buy Cost',
+                                data: data4Buy,
+                                borderColor: colors.danger,
+                                backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0,
+                            },
+                            {
+                                label: 'Cumulative Lease Cost',
+                                data: data4Lease,
+                                borderColor: colors.success,
+                                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                                borderWidth: 3,
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 0,
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: true, position: 'top' }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: v => formatINR(v),
+                                    color: '#94a8bd'
+                                },
+                                grid: { color: 'rgba(77, 179, 255, 0.1)' }
+                            },
+                            x: {
+                                ticks: { color: '#94a8bd' },
+                                grid: { display: false }
+                            }
+                        }
+                    }
+                });
+            } else {
+                cumulativeChart.data.labels = labels4;
+                cumulativeChart.data.datasets[0].data = data4Buy;
+                cumulativeChart.data.datasets[1].data = data4Lease;
+                cumulativeChart.update();
+            }
+        }
+
+        /* ================= EMI CALCULATOR ================= */
+        function emi(P, r, n) {
+            if (r === 0) return P / n;
+            return P * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+        }
+
+        /* ================= MAIN CALCULATION ================= */
+        function calculate() {
+            try {
+                const LEASE_AMOUNT = num('leaseAmount');
+                const LOAN_AMOUNT = num('loanAmount');
+                const OWN_FUNDS = Math.max(0, LEASE_AMOUNT - LOAN_AMOUNT);
+
+                const LOAN_INTEREST_RATE = (num('loanRate') / 100) / 12;
+                const LOAN_TENURE = num('loanTenure');
+                const LEASE_TENURE = num('leaseTenure');
+
+                const WITHHOLDING = num('withholding') / 100;
+                const REFUND_DELAY = num('refundDelay');
+
+                const MAINTENANCE = num('maintenance');
+                const MARKET_RENT = num('marketRent');
+
+                const OPP_RATE = (num('oppRate') / 100) / 12;
+                const RISK_PREMIUM = num('riskPremium') / 100;
+                const RENT_INCREMENT = num('rentIncrement') / 100;
+
+                // Validation
+                if (LEASE_TENURE <= 0 || LOAN_TENURE <= 0 || MARKET_RENT <= 0) {
+                    console.warn('Invalid tenure or rent values');
+                    return;
+                }
+
+                // EMI & Interest
+                const EMI = emi(LOAN_AMOUNT, LOAN_INTEREST_RATE, LOAN_TENURE);
+                const totalInterest = EMI * LOAN_TENURE - LOAN_AMOUNT;
+                const monthlyLeaseCost = EMI + MAINTENANCE;
+
+                // Withholding & Refund
+                const refund = LEASE_AMOUNT * (1 - WITHHOLDING);
+                const withholdingLoss = LEASE_AMOUNT * WITHHOLDING;
+
+                // Opportunity Costs
+                const ownOpp = OWN_FUNDS * (Math.pow(1 + OPP_RATE, LEASE_TENURE) - 1);
+
+                let emiOpp = 0;
+                for (let m = 1; m <= LEASE_TENURE; m++) {
+                    const yearIndex = Math.floor((m - 1) / 12);
+                    const adjustedRent = MARKET_RENT * Math.pow(1 + RENT_INCREMENT, yearIndex);
+                    const extra = monthlyLeaseCost - adjustedRent;
+                    if (extra > 0) {
+                        emiOpp += extra * (Math.pow(1 + OPP_RATE, LEASE_TENURE - m + 1) - 1);
+                    }
+                }
+
+                const delayCost = refund * OPP_RATE * REFUND_DELAY;
+                const capitalLoss = totalInterest + withholdingLoss;
+                const totalEconomic = capitalLoss + ownOpp + emiOpp + delayCost;
+
+                const riskRent = (totalEconomic / LEASE_TENURE) * (1 + RISK_PREMIUM);
+                const monthlySavings = MARKET_RENT - riskRent;
+                const yearlySavings = monthlySavings * 12;
+                const termSavings = monthlySavings * LEASE_TENURE;
+
+                // Score Calculation
+                let score = MARKET_RENT > 0 ? (monthlySavings / MARKET_RENT) * 100 : 0;
+                score = Math.max(0, Math.min(100, score));
+
+                let color = '#f1c40f'; // amber
+                let interpretation = 'Balanced decision - Consider other factors';
+
+                if (score < 5) {
+                    color = '#ff4d4d'; // red
+                    interpretation = ' Strong Buying Advantage - Buying is more economical';
+                } else if (score < 25) {
+                    color = '#ff9f43'; // orange
+                    interpretation = '  Slight Buying Advantage - Buying is slightly better';
+                } else if (score < 50) {
+                    color = '#f1c40f'; // amber
+                    interpretation = ' Marginal Leasing Advantage - Consider other factors';
+                } else if (score < 75) {
+                    color = '#2ecc71'; // green
+                    interpretation = ' Strong Leasing Advantage - Leasing is recommended';
+                } else {
+                    color = '#1abc9c'; // turquoise
+                    interpretation = ' Excellent Leasing Advantage - Highly favorable to lease';
+                }
+
+                // Update Gauge
+                const gaugeDegrees = score * 3.6;
+                $('gauge').style.background = `conic-gradient(${color} ${gaugeDegrees}deg, #1a2a38 ${gaugeDegrees}deg)`;
+                $('dial').style.color = color;
+                $('dial').innerText = Math.round(score);
+
+                // Update Interpretation
+                $('interpretation').innerText = interpretation;
+
+                // Update Metrics
+                $('emiLabel').innerText = 'EMI: ' + formatINR(EMI);
+                $('oppLabel').innerText = 'Opp Cost: ' + formatINR(ownOpp);
+                $('riskLabel').innerText = 'Risk Rent: ' + formatINR(riskRent);
+
+                $('mSave').innerText = formatINR(monthlySavings);
+                $('ySave').innerText = formatINR(yearlySavings);
+                $('tSave').innerText = formatINR(termSavings);
+
+                // Chart Data Preparation
+                let waterfall_labels = ['Interest', 'Opp Cost', 'EMI Opp', 'Delay', 'Withholding'];
+                let waterfall_data = [totalInterest, ownOpp, emiOpp, delayCost, withholdingLoss];
+
+                let rentSeries = [];
+                let rentLabels = [];
+                for (let m = 1; m <= Math.min(LEASE_TENURE, 120); m++) {
+                    let yearIndex = Math.floor((m - 1) / 12);
+                    rentSeries.push(MARKET_RENT * Math.pow(1 + RENT_INCREMENT, yearIndex));
+                    rentLabels.push('M' + m);
+                }
+
+                let riskAxis = [];
+                let savingsAxis = [];
+                for (let r = -20; r <= 20; r += 1) {
+                    let simulatedRiskRent = riskRent * (1 + r / 100);
+                    riskAxis.push(r + '%');
+                    savingsAxis.push(MARKET_RENT - simulatedRiskRent);
+                }
+
+                let cumulativeBuy = 0;
+                let cumulativeLease = 0;
+                let cumulativeBuyData = [];
+                let cumulativeLeaseData = [];
+                let cumulativeMonths = [];
+
+                for (let m = 1; m <= Math.min(LEASE_TENURE, 120); m++) {
+                    cumulativeBuy += monthlyLeaseCost;
+                    let yearIndex = Math.floor((m - 1) / 12);
+                    cumulativeLease += MARKET_RENT * Math.pow(1 + RENT_INCREMENT, yearIndex);
+                    cumulativeBuyData.push(cumulativeBuy);
+                    cumulativeLeaseData.push(cumulativeLease);
+                    cumulativeMonths.push('M' + m);
+                }
+
+                // Initialize Charts
+                initCharts(
+                    waterfall_labels, waterfall_data,
+                    rentLabels, rentSeries,
+                    riskAxis, savingsAxis,
+                    cumulativeMonths, cumulativeBuyData, cumulativeLeaseData
+                );
+
+            } catch (error) {
+                console.error('Calculation error:', error);
+            }
+        }
+
+        /* ================= EVENT LISTENERS ================= */
+        document.querySelectorAll('input').forEach(el => {
+            el.addEventListener('input', () => {
+                const timer = setTimeout(calculate, 300);
+                el.addEventListener('input', () => {
+                    clearTimeout(timer);
+                }, { once: true });
+            });
+        });
+
+        // Initial Calculation
+        window.addEventListener('load', calculate);
+        calculate();
+
+    </script>
 </body>
+
 </html>
