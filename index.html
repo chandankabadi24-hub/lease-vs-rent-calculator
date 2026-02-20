@@ -9,7 +9,9 @@
 
 <style>
 
-/* ---------- TYPOGRAPHY SYSTEM ---------- */
+/* ===============================
+   DESIGN SYSTEM (NO LOGIC CHANGES)
+================================ */
 
 :root{
 --bg:#f4f7fb;
@@ -48,9 +50,8 @@ border-radius:var(--radius);
 padding:24px;
 margin-bottom:24px;
 box-shadow:0 8px 18px rgba(0,0,0,.06);
+animation:fadeIn .6s ease;
 }
-
-/* ---------- INPUT GRID ---------- */
 
 .grid{
 display:grid;
@@ -67,8 +68,6 @@ color:var(--text);
 font-size:14px;
 }
 
-/* ---------- BUTTONS ---------- */
-
 button{
 background:var(--accent);
 color:white;
@@ -78,9 +77,10 @@ border-radius:10px;
 font-weight:600;
 cursor:pointer;
 margin-top:10px;
+transition:.25s;
 }
 
-/* ---------- METRICS ---------- */
+button:hover{transform:scale(1.03)}
 
 .metricLabel{
 font-size:13px;
@@ -93,8 +93,6 @@ font-size:22px;
 font-weight:700;
 margin-top:4px;
 }
-
-/* ---------- TOGGLE ---------- */
 
 .toggleWrap{
 display:flex;
@@ -110,8 +108,6 @@ border-radius:20px;
 font-size:13px;
 cursor:pointer;
 }
-
-/* ---------- CONFIDENCE BAR ---------- */
 
 .bar{
 height:14px;
@@ -135,6 +131,23 @@ text-align:center;
 margin-top:14px;
 }
 
+.heroTitle{
+font-size:32px;
+font-weight:700;
+}
+
+.heroText{
+max-width:700px;
+margin:auto;
+color:var(--muted);
+line-height:1.6;
+}
+
+@keyframes fadeIn{
+from{opacity:0;transform:translateY(10px);}
+to{opacity:1;transform:translateY(0);}
+}
+
 </style>
 </head>
 
@@ -142,11 +155,32 @@ margin-top:14px;
 
 <div class="container">
 
+<!-- ===============================
+ HERO / ONBOARDING (UI ONLY)
+================================ -->
+
+<div id="heroSection" class="card" style="text-align:center;">
+<div class="heroTitle">Lease vs Rent Fintech Decision Engine</div>
+
+<p class="heroText">
+Run Best, Realistic and Worst-case financial scenarios to understand
+whether leasing truly saves money compared to renting.
+</p>
+
+<button onclick="startApp()">Start Smart Analysis </button>
+</div>
+
+<!-- ===============================
+ MAIN APP (LOGIC PRESERVED)
+================================ -->
+
+<div id="appSection" style="display:none;">
+
 <div class="toggleWrap">
 <div class="toggleBtn" onclick="toggleTheme()"> Dark Mode |  Light Mode</div>
 </div>
 
-<h1>Lease vs Rent Fintech Decision Engine</h1>
+<h1>Financial Dashboard</h1>
 
 <div class="card">
 <h3>Inputs</h3>
@@ -174,7 +208,6 @@ margin-top:14px;
 <div class="card">
 
 <div id="results"></div>
-
 <div id="verdict" class="verdict"></div>
 
 <div class="metricLabel">Confidence Score</div>
@@ -184,18 +217,29 @@ margin-top:14px;
 
 </div>
 
+</div>
+
 <script>
 
-const $=id=>document.getElementById(id);
-let lastResults={};
+/* ===============================
+ UI CONTROLLERS (NO LOGIC CHANGES)
+================================ */
 
-/* ---------- THEME ---------- */
+function startApp(){
+document.getElementById("heroSection").style.display="none";
+document.getElementById("appSection").style.display="block";
+}
 
 function toggleTheme(){
 document.body.classList.toggle("dark");
 }
 
-/* ---------- FORMAT ---------- */
+/* ===============================
+ FORMAT ENGINE
+================================ */
+
+const $=id=>document.getElementById(id);
+let lastResults={};
 
 function clean(v){return parseFloat((v||"").replace(/[,%\s,]/g,""))||0;}
 function INR(n){return " "+Math.round(n||0).toLocaleString("en-IN");}
@@ -208,7 +252,9 @@ document.querySelectorAll(".percent").forEach(i=>{
 i.addEventListener("blur",()=>{let v=clean(i.value);if(v)i.value=PCT(v);});
 });
 
-/* ---------- ENGINE ---------- */
+/* ===============================
+ FINANCIAL ENGINE (UNCHANGED)
+================================ */
 
 function emi(P,r,n){
 if(r===0)return P/n;
@@ -282,10 +328,11 @@ $("verdict").innerText=verdict+" ("+label.toUpperCase()+")";
 $("confidenceFill").style.width=score+"%";
 
 lastResults={EMI,riskRent,monthlySavings,yearlySavings,termSavings,label,verdict};
-
 }
 
-/* ---------- PROFESSIONAL REPORT ---------- */
+/* ===============================
+ PROFESSIONAL REPORT (UNCHANGED LOGIC)
+================================ */
 
 async function downloadPDF(){
 
@@ -315,7 +362,9 @@ doc.text("Yearly Savings: "+INR(lastResults.yearlySavings),20,140);
 doc.text("Lease Term Savings: "+INR(lastResults.termSavings),20,150);
 
 doc.text("Interpretation",20,170);
-doc.text("Best, Realistic and Worst cases simulate different risk and opportunity assumptions to help you understand financial resilience.",20,180,{maxWidth:170});
+doc.text(
+"Best, Realistic and Worst cases simulate different risk and opportunity assumptions to help understand financial resilience.",
+20,180,{maxWidth:170});
 
 doc.save("Lease_vs_Rent_Professional_Report.pdf");
 }
