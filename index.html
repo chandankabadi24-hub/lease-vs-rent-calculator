@@ -1,48 +1,153 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent Analyzer ELITE</title>
+<title>Lease vs Rent AI Fintech Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{font-family:Arial;background:#f4f6f9;margin:0;padding:15px;}
-.container{max-width:1100px;margin:auto;}
-h1{text-align:center;color:#1f4e79;}
-.card{
-background:#fff;padding:18px;margin-bottom:20px;
-border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.06);
+
+/* ---------- DARK FINTECH THEME ---------- */
+
+body{
+margin:0;
+font-family:Inter,Arial;
+background:linear-gradient(135deg,#0b1622,#0f2336,#081018);
+color:#e6eef7;
+padding:15px;
 }
+
+.container{max-width:1150px;margin:auto;}
+
+h1{
+text-align:center;
+font-weight:700;
+background:linear-gradient(90deg,#00d4ff,#2ecc71,#00d4ff);
+-webkit-background-clip:text;
+color:transparent;
+animation:glow 6s linear infinite;
+}
+
+@keyframes glow{
+0%{filter:hue-rotate(0deg)}
+100%{filter:hue-rotate(360deg)}
+}
+
+/* ---------- GLASS CARDS ---------- */
+
+.card{
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(14px);
+border:1px solid rgba(255,255,255,0.08);
+border-radius:16px;
+padding:20px;
+margin-bottom:20px;
+box-shadow:0 10px 30px rgba(0,0,0,.35);
+transition:.35s;
+}
+
+.card:hover{
+transform:translateY(-4px);
+box-shadow:0 14px 40px rgba(0,0,0,.6);
+}
+
+/* ---------- GRID ---------- */
+
 .grid{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
 gap:10px;
 }
+
 input{
-width:100%;padding:10px;border-radius:6px;border:1px solid #ccc;
+background:#07111c;
+border:1px solid #1e3a52;
+color:#e6eef7;
+padding:12px;
+border-radius:10px;
+outline:none;
+transition:.25s;
 }
+
+input:focus{
+border-color:#00d4ff;
+box-shadow:0 0 8px rgba(0,212,255,.4);
+}
+
+/* ---------- BUTTONS ---------- */
+
 button{
-padding:12px;margin-top:8px;width:100%;
-background:#1f4e79;color:#fff;border:none;border-radius:6px;font-weight:bold;
+background:linear-gradient(90deg,#1f4e79,#00d4ff);
+border:none;
+color:white;
+padding:12px;
+border-radius:10px;
+font-weight:bold;
+cursor:pointer;
+transition:.3s;
 }
-.score{font-size:24px;font-weight:bold;margin-top:12px;}
-.good{color:green}.warning{color:orange}.bad{color:red}
+
+button:hover{
+transform:scale(1.05);
+box-shadow:0 0 12px rgba(0,212,255,.6);
+}
+
+.scenarioBtns{display:flex;gap:8px;margin-top:10px}
+.scenarioBtns button{flex:1}
+
+/* ---------- VERDICT ---------- */
+
+.verdict{
+font-size:26px;
+font-weight:bold;
+text-align:center;
+margin-top:10px;
+}
+
+/* ---------- GAUGE ---------- */
+
+.gauge{
+height:18px;
+background:#0b1a29;
+border-radius:10px;
+overflow:hidden;
+margin-top:12px;
+}
+
+.gauge-fill{
+height:100%;
+width:0%;
+background:linear-gradient(90deg,#ff4d4d,#f1c40f,#2ecc71);
+transition:width 1s ease;
+}
+
+/* ---------- TEXT COLORS ---------- */
+
+.good{color:#2ecc71}
+.warning{color:#f1c40f}
+.bad{color:#ff4d4d}
+
+.bigNumber{
+font-size:22px;
+font-weight:600;
+margin-top:6px;
+}
+
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
-<h1>Lease vs Rent Analyzer ELITE</h1>
+<h1>Lease vs Rent AI Fintech Dashboard</h1>
 
 <div class="card">
 <h3>Inputs</h3>
 
 <div class="grid">
-
 <input id="leaseAmount" class="currency" placeholder="Lease Amount">
 <input id="loanAmount" class="currency" placeholder="Loan Amount">
 <input id="loanRate" class="percent" placeholder="Loan Interest %">
@@ -55,17 +160,22 @@ background:#1f4e79;color:#fff;border:none;border-radius:6px;font-weight:bold;
 <input id="oppRate" class="percent" placeholder="Opportunity Cost %">
 <input id="riskPremium" class="percent" placeholder="Risk Premium %">
 <input id="salary" class="currency" placeholder="Take Home Salary (Optional)">
-
 </div>
 
-<button onclick="calculate()">Run Analysis</button>
-<button onclick="downloadPDF()">Download PDF</button>
+<div class="scenarioBtns">
+<button onclick="runScenario('best')">🟢 Best</button>
+<button onclick="runScenario('realistic')">🟡 Realistic</button>
+<button onclick="runScenario('worst')">🔴 Worst</button>
+</div>
+
+<button onclick="downloadPDF()">Download Professional Report</button>
 
 </div>
 
 <div class="card">
-<h3>Results</h3>
 <div id="results"></div>
+<div id="verdict" class="verdict"></div>
+<div class="gauge"><div id="gaugeFill" class="gauge-fill"></div></div>
 </div>
 
 <div class="card">
@@ -77,166 +187,129 @@ background:#1f4e79;color:#fff;border:none;border-radius:6px;font-weight:bold;
 <script>
 
 let chartInstance;
-const $ = id => document.getElementById(id);
+let lastResults={};
 
-/* ---------- FORMAT HELPERS ---------- */
+const $=id=>document.getElementById(id);
 
-function cleanNumber(v){
-return parseFloat((v||"").replace(/[₹,%\s,]/g,"")) || 0;
-}
+/* ---------- FORMAT ENGINE ---------- */
 
-function formatINR(n){
-return "₹ " + Math.round(n||0).toLocaleString("en-IN");
-}
+function clean(v){return parseFloat((v||"").replace(/[₹,%\s,]/g,""))||0;}
+function INR(n){return "₹ "+Math.round(n||0).toLocaleString("en-IN");}
+function PCT(n){return (n||0).toFixed(2)+"%";}
 
-function formatPercent(n){
-return (n||0).toFixed(2)+"%";
-}
-
-function attachFormatting(){
-
-document.querySelectorAll(".currency").forEach(inp=>{
-inp.addEventListener("blur",()=>{
-let val=cleanNumber(inp.value);
-if(val) inp.value=formatINR(val);
+document.querySelectorAll(".currency").forEach(i=>{
+i.addEventListener("blur",()=>{let v=clean(i.value);if(v)i.value=INR(v);});
 });
+document.querySelectorAll(".percent").forEach(i=>{
+i.addEventListener("blur",()=>{let v=clean(i.value);if(v)i.value=PCT(v);});
 });
 
-document.querySelectorAll(".percent").forEach(inp=>{
-inp.addEventListener("blur",()=>{
-let val=cleanNumber(inp.value);
-if(val) inp.value=formatPercent(val);
-});
-});
+/* ---------- FINANCIAL ENGINE ---------- */
 
-}
-
-attachFormatting();
-
-/* ---------- FINANCIAL CORE ---------- */
-
-function emiCalc(P,r,n){
-if(r===0) return P/n;
+function emi(P,r,n){
+if(r===0)return P/n;
 return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
 }
 
-function futureValue(pmt,rate,n){
-if(rate===0) return pmt*n;
-return pmt*((Math.pow(1+rate,n)-1)/rate);
+function runScenario(type){
+
+let riskAdj=1,oppAdj=1;
+if(type==="best"){riskAdj=.6;oppAdj=.8;}
+if(type==="worst"){riskAdj=1.5;oppAdj=1.2;}
+
+calculate(type,riskAdj,oppAdj);
 }
 
-function calculate(){
+function calculate(label,riskAdj,oppAdj){
 
-const leaseAmount=cleanNumber($("leaseAmount").value);
-const loanAmount=cleanNumber($("loanAmount").value);
+const leaseAmount=clean($("leaseAmount").value);
+const loanAmount=clean($("loanAmount").value);
 const ownFunds=Math.max(0,leaseAmount-loanAmount);
 
-const loanRate=(cleanNumber($("loanRate").value)/100)/12;
-const loanTenure=cleanNumber($("loanTenure").value);
-const leaseTenure=cleanNumber($("leaseTenure").value);
+const loanRate=(clean($("loanRate").value)/100)/12;
+const loanTenure=clean($("loanTenure").value);
+const leaseTenure=clean($("leaseTenure").value);
 
-const withholding=cleanNumber($("withholding").value)/100;
-const refundDelay=cleanNumber($("refundDelay").value);
+const maintenance=clean($("maintenance").value);
+const marketRent=clean($("marketRent").value);
 
-const maintenance=cleanNumber($("maintenance").value);
-const marketRent=cleanNumber($("marketRent").value);
+const oppRate=((clean($("oppRate").value)/100)/12)*oppAdj;
+const riskPremium=(clean($("riskPremium").value)/100)*riskAdj;
 
-const oppRate=(cleanNumber($("oppRate").value)/100)/12;
-const riskPremium=cleanNumber($("riskPremium").value)/100;
-const salary=cleanNumber($("salary").value);
+const EMI=emi(loanAmount,loanRate,loanTenure);
 
-if(!loanAmount || !loanTenure){
-alert("Enter loan amount and tenure.");
-return;
-}
-
-const emi=emiCalc(loanAmount,loanRate,loanTenure);
-const totalInterest=emi*loanTenure-loanAmount;
-
-const monthlyLeaseCost=emi+maintenance;
-const monthlyExtra=monthlyLeaseCost-marketRent;
-
-const refund=leaseAmount*(1-withholding);
-const withholdingLoss=leaseAmount*withholding;
-
-const ownOpp=ownFunds*(Math.pow(1+oppRate,leaseTenure)-1);
-
-let emiOpp=0;
-if(monthlyExtra>0){
-emiOpp=futureValue(monthlyExtra,oppRate,leaseTenure)-(monthlyExtra*leaseTenure);
-}
-
-const delayCost=refund*oppRate*refundDelay;
-const capitalLoss=totalInterest+withholdingLoss;
-const totalEconomic=capitalLoss+ownOpp+emiOpp+delayCost;
+const totalEconomic=EMI*loanTenure-loanAmount + ownFunds*oppRate*leaseTenure;
 
 const riskRent=(totalEconomic/leaseTenure)*(1+riskPremium);
-
-/* ---------- NEW SAVINGS ENGINE ---------- */
 
 const monthlySavings=marketRent-riskRent;
 const yearlySavings=monthlySavings*12;
 const termSavings=monthlySavings*leaseTenure;
 
-/* ---------- SCORE ---------- */
-
-let score=marketRent>0?(monthlySavings/marketRent)*100:0;
+let score=(monthlySavings/marketRent)*100;
 score=Math.max(0,Math.min(100,score));
 
-let stress="";
-if(salary){
-let ratio=monthlyLeaseCost/salary;
-if(ratio<0.35) stress="<span class='good'>Low Stress</span>";
-else if(ratio<0.55) stress="<span class='warning'>Moderate Stress</span>";
-else stress="<span class='bad'>High Stress</span>";
-}
+let verdictText="🟡 NEUTRAL";
+if(score>20) verdictText="🟢 LEASE IS WINNING";
+if(score<5) verdictText="🔴 RENT IS SAFER";
 
-/* ---------- OUTPUT ---------- */
+$("verdict").innerText=verdictText+" ("+label.toUpperCase()+")";
+$("gaugeFill").style.width=score+"%";
 
 $("results").innerHTML=`
-
-Own Funds Used: ${formatINR(ownFunds)} <br><br>
-
-EMI: ${formatINR(emi)} <br>
-Monthly Lease Cost: ${formatINR(monthlyLeaseCost)} <br>
-Risk Adjusted Notional Rent: ${formatINR(riskRent)} <br><br>
-
-<b>Monthly Savings:</b> ${formatINR(monthlySavings)} <br>
-<b>Yearly Savings:</b> ${formatINR(yearlySavings)} <br>
-<b>Total Lease Term Savings:</b> ${formatINR(termSavings)} <br>
-
-<div class="score">
-Lease Efficiency Score: ${score.toFixed(0)} / 100
-</div>
-
-Cash Flow Stress: ${stress}
+<div>Own Funds Used: ${INR(ownFunds)}</div>
+<div>EMI: ${INR(EMI)}</div>
+<div>Risk Adjusted Rent: ${INR(riskRent)}</div>
+<div class="bigNumber">Monthly Savings: ${INR(monthlySavings)}</div>
+<div>Yearly Savings: ${INR(yearlySavings)}</div>
+<div>Total Term Savings: ${INR(termSavings)}</div>
 `;
 
-if(chartInstance) chartInstance.destroy();
+lastResults={EMI,riskRent,monthlySavings,yearlySavings,termSavings,label,verdictText};
 
+if(chartInstance)chartInstance.destroy();
 chartInstance=new Chart($("chart"),{
 type:"bar",
 data:{
-labels:["Market Rent","Risk Adjusted Lease Rent"],
-datasets:[{
-label:"Monthly Cost Comparison",
-data:[marketRent,riskRent]
-}]
+labels:["Market Rent","Risk Rent"],
+datasets:[{label:"Scenario: "+label,data:[marketRent,riskRent]}]
 }
 });
-
 }
 
-/* ---------- PDF ---------- */
+/* ---------- PROFESSIONAL PDF ---------- */
 
 async function downloadPDF(){
-const { jsPDF } = window.jspdf;
+
+if(!lastResults.EMI){
+alert("Run analysis first");
+return;
+}
+
+const {jsPDF}=window.jspdf;
 const doc=new jsPDF();
-doc.setFontSize(16);
-doc.text("Lease vs Rent Financial Report",20,20);
-doc.setFontSize(11);
-doc.text($("results").innerText,20,35);
-doc.save("Lease_vs_Rent_Report.pdf");
+
+doc.setFontSize(18);
+doc.text("Lease vs Rent Financial Decision Report",20,20);
+
+doc.setFontSize(12);
+doc.text("Executive Summary",20,40);
+doc.text("Verdict: "+lastResults.verdictText,20,50);
+doc.text("Scenario: "+lastResults.label,20,60);
+
+doc.text("Financial Breakdown",20,80);
+doc.text("EMI: "+INR(lastResults.EMI),20,90);
+doc.text("Risk Adjusted Rent: "+INR(lastResults.riskRent),20,100);
+
+doc.text("Savings Analysis",20,120);
+doc.text("Monthly Savings: "+INR(lastResults.monthlySavings),20,130);
+doc.text("Yearly Savings: "+INR(lastResults.yearlySavings),20,140);
+doc.text("Lease Term Savings: "+INR(lastResults.termSavings),20,150);
+
+doc.setFontSize(10);
+doc.text("Generated by Lease vs Rent AI Fintech Dashboard.",20,180);
+
+doc.save("Lease_vs_Rent_Professional_Report.pdf");
 }
 
 </script>
