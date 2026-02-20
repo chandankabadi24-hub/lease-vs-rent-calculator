@@ -2,13 +2,13 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Lease vs Rent – Unicorn Fintech UI</title>
+<title>Lease vs Rent – Series-A Fintech Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* ===== UNICORN FINTECH DESIGN SYSTEM ===== */
+/* ===== SERIES-A FINTECH DESIGN SYSTEM ===== */
 
 :root{
 --bg:#f4f7fb;
@@ -39,10 +39,6 @@ transition:.35s;
 
 .container{max-width:1150px;margin:auto;}
 
-.hero{text-align:center;margin-bottom:28px;animation:fadeIn .7s ease;}
-.hero h1{font-size:30px;margin:0;}
-.hero p{color:var(--muted);margin-top:8px;}
-
 .card{
 background:var(--card);
 backdrop-filter:blur(16px);
@@ -52,6 +48,10 @@ border-radius:18px;
 box-shadow:var(--shadow);
 animation:fadeUp .5s ease;
 }
+
+.hero{text-align:center;margin-bottom:28px;}
+.hero h1{margin:0;font-size:30px;}
+.hero p{color:var(--muted);}
 
 .grid{
 display:grid;
@@ -71,46 +71,50 @@ button{
 background:var(--accent);
 color:white;
 border:none;
-padding:12px;
+padding:10px 14px;
 border-radius:12px;
 font-weight:600;
-margin-top:14px;
 cursor:pointer;
 transition:.25s;
 }
 button:hover{transform:translateY(-2px);}
 
+.scenarioBar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+
 .metricLabel{font-size:13px;color:var(--muted);margin-top:14px;}
 .metricValue{font-size:26px;font-weight:700;margin-top:4px;}
 
-.verdict{font-size:24px;font-weight:700;text-align:center;margin-top:18px;}
+.aiBanner{
+padding:14px;
+border-radius:12px;
+margin-bottom:14px;
+font-weight:600;
+}
 
-.kpiRow{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-gap:16px;
+.confidenceBar{
+height:14px;
+border-radius:20px;
+background:#ddd;
+overflow:hidden;
 margin-top:10px;
 }
 
-.kpiBox{
-padding:14px;
-border-radius:14px;
-background:rgba(255,255,255,.35);
-}
-
-.riskBar{
-height:12px;
-background:#ddd;
-border-radius:20px;
-overflow:hidden;
-margin-top:8px;
-}
-
-.riskFill{
+.confidenceFill{
 height:100%;
 width:0%;
 background:linear-gradient(90deg,#ff4d4d,#f1c40f,#2ecc71);
 transition:width 1s ease;
+}
+
+.toggle{
+position:fixed;
+top:18px;
+right:18px;
+background:var(--accent);
+color:white;
+padding:8px 14px;
+border-radius:20px;
+cursor:pointer;
 }
 
 .chartStack{display:flex;flex-direction:column;gap:24px;}
@@ -123,20 +127,10 @@ border-radius:18px;
 box-shadow:var(--shadow);
 }
 
-.toggle{
-position:fixed;
-top:18px;
-right:18px;
-background:var(--accent);
-color:white;
-padding:8px 14px;
-border-radius:20px;
-cursor:pointer;
-font-size:13px;
+@keyframes fadeUp{
+from{opacity:0;transform:translateY(16px);}
+to{opacity:1;}
 }
-
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;}}
 
 </style>
 </head>
@@ -149,11 +143,16 @@ font-size:13px;
 
 <div class="hero">
 <h1>Lease vs Rent Financial Decision Engine</h1>
-<p>Unicorn-level analytics with opportunity-cost intelligence.</p>
+<p>Series-A level analytics with AI-style decision intelligence.</p>
 </div>
 
 <div class="card">
-<h3>Financial Inputs</h3>
+
+<div class="scenarioBar">
+<button onclick="setScenario(0.8)">Conservative</button>
+<button onclick="setScenario(1)">Balanced</button>
+<button onclick="setScenario(1.25)">Aggressive</button>
+</div>
 
 <div class="grid">
 <input id="leaseAmount" class="currency" placeholder="Lease Amount">
@@ -171,25 +170,17 @@ font-size:13px;
 </div>
 
 <button onclick="calculate()">Run Analysis</button>
+
 </div>
 
 <div class="card">
-<h3>Live Derived Analytics</h3>
-<div class="kpiRow">
-<div class="kpiBox"><div class="metricLabel">Own Funds</div><div id="ownFundsKPI" class="metricValue">₹ 0</div></div>
-<div class="kpiBox"><div class="metricLabel">Lease Monthly Cost</div><div id="leaseCostKPI" class="metricValue">₹ 0</div></div>
-<div class="kpiBox"><div class="metricLabel">Risk Adjusted Rent</div><div id="riskRentKPI" class="metricValue">₹ 0</div></div>
-</div>
-</div>
+<div id="aiBanner" class="aiBanner"></div>
 
-<div class="card">
-<h3>Key Financial Metrics</h3>
 <div id="results"></div>
 
-<div class="metricLabel">Lease Efficiency Heat</div>
-<div class="riskBar"><div id="riskFill" class="riskFill"></div></div>
+<div class="metricLabel">Decision Confidence</div>
+<div class="confidenceBar"><div id="confidenceFill" class="confidenceFill"></div></div>
 
-<div id="verdict" class="verdict"></div>
 </div>
 
 <div class="chartStack">
@@ -205,9 +196,9 @@ font-size:13px;
 /* ===== THEME ===== */
 function toggleTheme(){document.body.classList.toggle("dark");}
 
-const $=id=>document.getElementById(id);
-
 /* ===== BLOOMBERG FORMAT ENGINE ===== */
+
+const $=id=>document.getElementById(id);
 
 function cleanNumber(v){
 return parseFloat((v||"").replace(/[₹,%\s,]/g,""))||0;
@@ -237,7 +228,14 @@ document.querySelectorAll(".percent").forEach(el=>{
 el.addEventListener("input",()=>smartFormat(el,formatPercent));
 });
 
-/* ===== FINANCIAL ENGINE (UNCHANGED) ===== */
+/* ===== SCENARIO CONTROL ===== */
+
+function setScenario(mult){
+let val=num("riskPremium")||0;
+$("riskPremium").value=formatPercent(val*mult);
+}
+
+/* ===== ORIGINAL FINANCIAL ENGINE (UNCHANGED) ===== */
 
 let comparisonChart,projectionChart,compositionChart;
 
@@ -250,22 +248,6 @@ return P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
 function futureValue(pmt,rate,n){
 if(rate===0)return pmt*n;
 return pmt*((Math.pow(1+rate,n)-1)/rate);
-}
-
-/* ===== COUNTER ANIMATION ===== */
-
-function animateValue(el,end){
-let start=0;
-let duration=600;
-let stepTime=20;
-let steps=duration/stepTime;
-let increment=end/steps;
-let val=0;
-let timer=setInterval(()=>{
-val+=increment;
-if(val>=end){val=end;clearInterval(timer);}
-el.innerText=INR(val);
-},stepTime);
 }
 
 function calculate(){
@@ -286,7 +268,6 @@ const MARKET_RENT=num("marketRent");
 
 const OPP_RATE=(num("oppRate")/100)/12;
 const RISK_PREMIUM=num("riskPremium")/100;
-const SALARY=num("salary");
 
 /* ===== ORIGINAL LOGIC ===== */
 
@@ -317,7 +298,6 @@ emiOpp+
 delayCost;
 
 const riskRent=(totalEconomic/LEASE_TENURE)*(1+RISK_PREMIUM);
-const breakEven=riskRent;
 
 const monthlySavings=MARKET_RENT-riskRent;
 const yearlySavings=monthlySavings*12;
@@ -326,15 +306,18 @@ const termSavings=monthlySavings*LEASE_TENURE;
 let score=MARKET_RENT>0?(monthlySavings/MARKET_RENT)*100:0;
 score=Math.max(0,Math.min(100,score));
 
-const extraCash=(Math.max(monthlyExtra,0)*LEASE_TENURE)+OWN_FUNDS;
+/* ===== AI DECISION BANNER ===== */
 
-/* ===== KPI PANEL ===== */
+let msg="Balanced Decision Zone";
+if(score>20) msg="Strong Lease Advantage — capital efficiency beats market rent.";
+if(score<5) msg="Rent Strategy Safer — risk adjusted lease cost is high.";
 
-animateValue($("ownFundsKPI"),OWN_FUNDS);
-animateValue($("leaseCostKPI"),monthlyLeaseCost);
-animateValue($("riskRentKPI"),riskRent);
+$("aiBanner").innerText=msg;
 
-$("riskFill").style.width=score+"%";
+/* ===== CONFIDENCE METER ===== */
+$("confidenceFill").style.width=score+"%";
+
+/* ===== METRICS ===== */
 
 $("results").innerHTML=`
 <div class="metricLabel">Monthly Savings</div>
@@ -346,11 +329,6 @@ $("results").innerHTML=`
 <div class="metricLabel">Lease Term Savings</div>
 <div>${INR(termSavings)}</div>
 `;
-
-let verdict="🟡 Neutral";
-if(score>20) verdict="🟢 Lease Is Winning";
-if(score<5) verdict="🔴 Rent Is Safer";
-$("verdict").innerText=verdict;
 
 /* ===== CHARTS ===== */
 
